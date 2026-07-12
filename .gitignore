@@ -38,3 +38,7 @@ logisense.db-shm
 
 # Synthetic demo dataset (safe to track — fabricated data, real pincodes only)
 !tools/sample_data/LogiSense_demo_*.xlsx
+
+# Machine-specific launcher scripts
+start.bat
+stop.bat
