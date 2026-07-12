@@ -27,6 +27,12 @@ _ORDERS_SQL = """
            _oda, last_scan_date, destination_city, state, pin_code
     FROM shipments_latest
     WHERE current_status IN ('Manifested','Dispatched','In Transit','Pending','RTO')
+      -- Safety net: only operationally-relevant recent orders (within 60 days of
+      -- the newest manifest). Filters out any stale non-delivered rows that slip
+      -- through. Shared by /transit/orders + /transit/summary (+ aggregate-transit).
+      AND manifest_date >= (
+          SELECT DATE(MAX(manifest_date), '-60 days') FROM shipments_latest
+      )
 """
 
 

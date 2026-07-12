@@ -177,6 +177,15 @@ for o in orders:
              expected=MATRIX[zone] + (1 if is_oda else 0),
              manifest=rand_date(o["month"]), status=sample_status())
 
+# Lifecycle closure: a shipment can't still be "in transit" months later. Any
+# order manifested before the last ~45 days of the dataset (< 15 Jan 2026) must
+# be terminal (Delivered 97% / RTO 3%). Only recent orders stay non-delivered.
+CLOSURE_CUTOFF = date(2026, 1, 15)
+_NON_TERMINAL = {"In Transit", "Pending", "Dispatched"}
+for o in orders:
+    if o["manifest"] < CLOSURE_CUTOFF and o["status"] in _NON_TERMINAL:
+        o["status"] = "RTO" if random.random() < 0.03 else "Delivered"
+
 # ~450 overlap LRNs: appear in two consecutive files (dedup exercise).
 _cands = [o for o in orders if o["month"] <= 6 and o["status"] == "Delivered"]
 random.shuffle(_cands)
@@ -287,6 +296,13 @@ for o in orders:
 OUT.mkdir(parents=True, exist_ok=True)
 print(f"NE chronically-late pincode: {NE_SPECIAL_PIN} ({NE_SPECIAL_STATE})")
 print(f"Unique LRNs: {len(orders)} | overlap LRNs: {sum(1 for o in orders if o.get('overlap'))}")
+_nd = [o for o in orders if o["status"] in ("In Transit", "Pending", "Dispatched")]
+if _nd:
+    _dts = [o["manifest"] for o in _nd]
+    print(f"Non-delivered unique LRNs: {len(_nd)} | manifest {min(_dts)} .. {max(_dts)}"
+          f" (all should be >= 2026-01-15)")
+else:
+    print("Non-delivered unique LRNs: 0")
 for i, name in enumerate(FILE_NAMES):
     # Shuffle so overlap/carried rows aren't clustered.
     random.shuffle(files[i])
