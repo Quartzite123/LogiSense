@@ -35,3 +35,6 @@ logisense.db-shm
 # Keep bundled reference (already tracked, public data)
 !app/reference/pincode_master.xlsx
 .claude/
+
+# Synthetic demo dataset (safe to track — fabricated data, real pincodes only)
+!tools/sample_data/LogiSense_demo_*.xlsx
