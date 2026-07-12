@@ -1,0 +1,14 @@
+pandas>=2.0
+openpyxl>=3.1
+numpy>=1.26
+
+# --- FastAPI backend ---
+fastapi>=0.111
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+
+# --- Phase 3 (AI assistant) ---
+httpx>=0.27
+groq>=0.9
+python-dotenv>=1.0
+pytest>=8.0

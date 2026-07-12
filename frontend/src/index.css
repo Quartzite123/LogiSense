@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0c0d;
+  color: #f8f8f8;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(255, 214, 10, 0.3);
+}
+
+/* Scrollbars (UI_DESIGN_SPEC §10.4) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #27272a #0b0c0d;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0c0d;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Skeleton shimmer (UI_DESIGN_SPEC §10.5) */
+@keyframes ls-shimmer {
+  0% {
+    background-position: -520px 0;
+  }
+  100% {
+    background-position: 520px 0;
+  }
+}
+.skeleton {
+  background: #15151a;
+  background-image: linear-gradient(90deg, #15151a 0px, #1f1f27 60px, #15151a 120px);
+  background-size: 640px 100%;
+  animation: ls-shimmer 1.4s infinite linear;
+  border-radius: 8px;
+}
+
+/* Toast slide-in */
+@keyframes ls-toast-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.toast-in {
+  animation: ls-toast-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .toast-in {
+    animation: none;
+  }
+}

@@ -1,0 +1,37 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.DS_Store
+*.db
+*.db-journal
+/data/
+.streamlit/secrets.toml
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Private data files (excluded from public repo)
+Green_red-yellow.xlsx
+LogiSense Automation file UPDATED (1).xlsx
+logisense project file new.xlsx
+logisense Xpress Pvt Ltd Updated_Project File (1).csv
+Percetaged_file.xlsx
+
+# Business data — never commit
+LogiSense*.xlsx
+logisense*.xlsx
+*Automation*.xlsx
+*automation*.xlsx
+*.xlsm
+
+# SQLite database — contains customer data
+logisense.db
+logisense.db-wal
+logisense.db-shm
+
+# Keep bundled reference (already tracked, public data)
+!app/reference/pincode_master.xlsx
+.claude/
