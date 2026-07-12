@@ -9,6 +9,8 @@ resolve regardless of the current working directory.
 """
 from __future__ import annotations
 
+import glob
+import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -30,6 +32,37 @@ from backend.routers import (
     upload, landing, transit, tat, aggregate, aggregate_transit, customize, exports, edit,
 )
 
+DEMO_DIR = ROOT / "tools" / "sample_data"
+
+
+def _auto_seed_demo_data() -> None:
+    """Batch-ingest the bundled demo files when shipments_latest is empty.
+
+    Fresh DB (zero shipment rows) -> loads every tools/sample_data/*.xlsx through
+    the existing pipeline (dedup-merged across files, so overlap LRNs collapse).
+    DB that already has data -> no-op. Works locally and on Render. app/ untouched.
+    """
+    if count_latest() > 0:
+        return  # already has shipment data — never overwrite
+
+    demo_files = sorted(glob.glob(str(DEMO_DIR / "*.xlsx")))
+    if not demo_files:
+        return  # no bundled demo files — skip silently
+
+    # ingest_file() appends+dedup-merges; clear once before the batch (same as the
+    # Streamlit upload dialog's per-batch behaviour). ingest_file returns a summary
+    # dict, so the row count comes from rows_new + rows_updated.
+    from app.pipeline.ingest import clear_all_shipments, ingest_file
+
+    print(f"[startup] Auto-seeding demo data from {len(demo_files)} files...")
+    clear_all_shipments()
+    for path in demo_files:
+        with open(path, "rb") as fh:
+            summary = ingest_file(fh, os.path.basename(path))
+        winners = int(summary["rows_new"]) + int(summary["rows_updated"])
+        print(f"  {os.path.basename(path)}: {winners} rows")
+    print(f"[startup] Demo seed complete: {count_latest()} unique LRNs in shipments_latest")
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -40,6 +73,10 @@ async def lifespan(_app: FastAPI):
         seed_all_if_empty()
     except Exception as e:  # never block startup on optional reference seeding
         print(f"[startup] reference seeding skipped/failed: {e}")
+    try:
+        _auto_seed_demo_data()
+    except Exception as e:  # never block startup on optional demo seeding
+        print(f"[startup] demo auto-seed skipped/failed: {e}")
     yield
 
 
