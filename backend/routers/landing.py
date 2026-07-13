@@ -39,7 +39,7 @@ _KPI_SQL = """
     SELECT
         COUNT(*)                                                        AS total,
         SUM(CASE WHEN current_status='Delivered'  THEN 1 ELSE 0 END)    AS delivered,
-        SUM(CASE WHEN current_status IN ('In Transit','Dispatched','Manifested')
+        SUM(CASE WHEN current_status NOT IN ('Delivered','RTO')
                  THEN 1 ELSE 0 END)                                     AS in_transit,
         SUM(CASE WHEN current_status='Pending'    THEN 1 ELSE 0 END)    AS pending,
         SUM(CASE WHEN current_status='RTO'        THEN 1 ELSE 0 END)    AS rto,
