@@ -120,20 +120,33 @@ COMPANIES: dict[str, dict] = {
                          "late": [random.uniform(8, 12) for _ in range(8)]},
 }
 
-RANDOM_NAMES = [
-    "NOVA INSTRUMENTS", "APEX COMPONENTS LTD", "VORTEX MACHINERY", "ZENITH HARDWARE",
-    "DELTA TOOLS", "HERALD ELECTRONICS", "SUMMIT PRECISION", "TERRA PACKAGING",
-    "LYNX SWITCHGEAR", "ORION VALVES", "SOLARIS FITTINGS", "PEAK ENGINEERING",
-    "RIVERSTONE CONTROLS", "COBALT LOGISTICS", "ECLIPSE MERCHANDISE",
+# 15 background companies split into 4 "personalities" so the MoM trend actually
+# moves (the Insights tab needs real variance, not a flat 10-25%). A small
+# per-company scale/jitter keeps same-group companies distinct.
+_GROUPS = [
+    # A - volatile: spiky volume, alternating good/bad months
+    (["NOVA INSTRUMENTS", "VORTEX MACHINERY", "HERALD ELECTRONICS",
+      "PEAK ENGINEERING", "RIVERSTONE CONTROLS"],
+     [35, 12, 40, 8, 38, 10, 42, 15], [5, 40, 8, 45, 6, 38, 10, 42]),
+    # B - steady decline: slow-burn deterioration
+    (["ZENITH HARDWARE", "DELTA TOOLS", "TERRA PACKAGING", "COBALT LOGISTICS"],
+     [25, 23, 20, 18, 15, 12, 10, 8], [15, 18, 22, 26, 30, 35, 40, 45]),
+    # C - steady growth: new client ramping up and improving
+    (["APEX COMPONENTS LTD", "SUMMIT PRECISION", "LYNX SWITCHGEAR"],
+     [10, 13, 16, 20, 24, 28, 33, 38], [35, 30, 25, 20, 16, 12, 9, 7]),
 ]
-
-# Size the 15 unpatterned companies so the grand total lands near 5,000 LRNs.
-_fixed_total = sum(sum(c["vol"]) for c in COMPANIES.values())
-_per_cm = max(8.0, (5000 - _fixed_total) / (len(RANDOM_NAMES) * 8))
-for name in RANDOM_NAMES:
+for _names, _base_vol, _base_late in _GROUPS:
+    for name in _names:
+        f = random.uniform(0.85, 1.25)  # per-company scale so they aren't identical
+        COMPANIES[name] = {
+            "vol": [max(3, round(v * f)) for v in _base_vol],
+            "late": [min(75.0, max(2.0, l + random.uniform(-4, 4))) for l in _base_late],
+        }
+# D - flat / reliable: boring but dependable (stable 15-20 volume, 8-12% late)
+for name in ["ORION VALVES", "SOLARIS FITTINGS", "ECLIPSE MERCHANDISE"]:
     COMPANIES[name] = {
-        "vol": [max(8, int(random.gauss(_per_cm, _per_cm * 0.3))) for _ in range(8)],
-        "late": [random.uniform(10, 25) for _ in range(8)],
+        "vol": [random.randint(15, 20) for _ in range(8)],
+        "late": [random.uniform(8, 12) for _ in range(8)],
     }
 
 # ---- Build the unique-LRN order list -----------------------------------------

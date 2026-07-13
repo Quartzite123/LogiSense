@@ -11,11 +11,12 @@ import { chartTheme, legendProps, tooltipProps } from './chartTheme.js'
 
 // Donut chart (UI_DESIGN_SPEC §3.2). data: [{ name, value, color }].
 // Optional centerLabel renders the total in the hole.
-export default function Donut({ data = [], height = 300, centerLabel = 'total' }) {
+export default function Donut({ data = [], height = 320, centerLabel = 'total' }) {
   const total = data.reduce((s, d) => s + (d.value || 0), 0)
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <div style={{ padding: '16px 8px 8px 8px', overflow: 'visible' }}>
+      <ResponsiveContainer width="100%" height={height}>
       <PieChart>
         <Pie
           data={data}
@@ -68,6 +69,7 @@ export default function Donut({ data = [], height = 300, centerLabel = 'total' }
           formatter={(value, entry) => `${value} · ${entry?.payload?.value?.toLocaleString?.() ?? ''}`}
         />
       </PieChart>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+    </div>
   )
 }
