@@ -19,7 +19,7 @@ function SectionLabel({ children }) {
 
 function PatternSkeletons() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {Array.from({ length: 3 }).map((_, i) => (
         <Skeleton key={i} height={168} style={{ borderRadius: 12 }} />
       ))}
@@ -48,7 +48,7 @@ export default function Insights() {
   const visible = showAll ? list : list.slice(0, TOP_N)
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
+    <div className="page-container mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
       <PageHeader title="AI Insights" subtitle="Patterns · Changes · Chat" />
 
       {patterns.isError ? (
@@ -84,7 +84,7 @@ export default function Insights() {
                 No patterns detected in the current data.
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {visible.map((p) => (
                   <PatternCard key={p.id} pattern={p} overallOdaPct={overallOdaPct} />
                 ))}

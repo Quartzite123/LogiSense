@@ -8,7 +8,7 @@ export default function PageHeader({ title, subtitle, showUpload = true }) {
     <div className="flex items-start justify-between gap-6">
       <div>
         <h1 className="text-[26px] font-bold leading-tight text-[#F8F8F8]">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-[#71717A]">{subtitle}</p>}
+        {subtitle && <p className="page-subtitle mt-1 text-sm text-[#71717A]">{subtitle}</p>}
       </div>
       {showUpload && (
         <button

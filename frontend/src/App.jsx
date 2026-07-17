@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Routes, Route } from 'react-router-dom'
 import { UIProvider } from './context/ui.jsx'
 import Sidebar from './components/Sidebar.jsx'
+import MobileNav from './components/MobileNav.jsx'
 import Landing from './pages/Landing.jsx'
 import TAT from './pages/TAT.jsx'
 import Transit from './pages/Transit.jsx'
@@ -30,7 +31,7 @@ export default function App() {
     <UIProvider>
       <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="main-content flex-1 overflow-y-auto">
           <Suspense fallback={<div className="p-10 text-sm text-text-muted">Loading…</div>}>
             <Routes>
               <Route path="/" element={<Landing />} />
@@ -47,6 +48,7 @@ export default function App() {
             </Routes>
           </Suspense>
         </main>
+        <MobileNav />
       </div>
     </UIProvider>
   )

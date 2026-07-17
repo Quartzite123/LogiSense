@@ -87,3 +87,31 @@ body {
     animation: none;
   }
 }
+
+/* Mobile responsive (Phase B3) — flips at the same 768px as useIsMobile.js */
+@media (max-width: 768px) {
+  /* Hide desktop sidebar (MobileNav takes over) */
+  .sidebar-desktop {
+    display: none !important;
+  }
+
+  /* Main content takes full width on mobile */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Reduce page padding + leave room for the fixed bottom nav bar */
+  .page-container {
+    padding: 16px !important;
+    padding-bottom: 72px !important;
+  }
+
+  /* Keep the page subtitle on one line — truncate instead of wrapping */
+  .page-subtitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 180px);
+  }
+}

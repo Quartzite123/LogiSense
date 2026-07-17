@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Skeleton from '../Skeleton.jsx'
 import { fetchJSON } from '../../lib/api.js'
+import { useIsMobile } from '../../lib/useIsMobile.js'
 
 const TEN_MIN = 10 * 60 * 1000
 
@@ -40,7 +41,14 @@ function fmtDate(iso) {
 }
 
 export default function DigestCard() {
-  const [open, setOpen] = useState(true)
+  const isMobile = useIsMobile()
+  // Collapsed by default on mobile (INSIGHTS_SPEC §3.1), expanded on desktop.
+  const [open, setOpen] = useState(!isMobile)
+  // Re-sync when the viewport crosses 768px (e.g. DevTools device toggle after
+  // load) — otherwise the once-only useState initializer keeps a stale value.
+  useEffect(() => {
+    setOpen(!isMobile)
+  }, [isMobile])
   const q = useQuery({
     queryKey: ['insights-digest'],
     queryFn: () => fetchJSON('/api/insights/digest'),
