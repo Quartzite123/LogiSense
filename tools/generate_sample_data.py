@@ -100,63 +100,99 @@ ODA_POOL, NORMAL_POOL = load_pools()
 # First NE ODA pincode (deterministic) — the chronically-late destination.
 NE_SPECIAL_PIN, NE_SPECIAL_STATE = sorted(ODA_POOL["North-East"])[0]
 
-# ---- Company patterns --------------------------------------------------------
-COMPANIES: dict[str, dict] = {
-    "STELLARTECH SYSTEMS": {"vol": [30, 35, 42, 50, 58, 65, 72, 80],
-                            "late": [25, 22, 18, 15, 12, 10, 8, 7]},
-    "MERIDIAN ELECTRICALS": {"vol": [20, 22, 25, 28, 32, 36, 40, 45],
-                             "late": [30, 25, 20, 16, 12, 10, 8, 6]},
-    "PRISM INDUSTRIES": {"vol": [40, 38, 35, 30, 22, 15, 10, 5],
-                         "late": [8, 12, 18, 25, 35, 45, 55, 60]},
-    "ATLAS FASTENERS": {"vol": [25, 24, 22, 20, 15, 10, 6, 3],
-                        "late": [10, 15, 22, 30, 40, 50, 60, 65]},
-    # Active months 1-7 only, then churns to zero.
-    "NEXUS FABRICATION": {"vol": [30, 28, 32, 26, 30, 24, 20, 0],
-                          "late": [40, 38, 42, 36, 44, 40, 38, 0]},
-    # Consistently excellent.
-    "CREST AUTOMATION": {"vol": [random.randint(18, 22) for _ in range(8)],
-                         "late": [random.uniform(5, 8) for _ in range(8)]},
-    "FALCON EQUIPMENT": {"vol": [random.randint(15, 20) for _ in range(8)],
-                         "late": [random.uniform(8, 12) for _ in range(8)]},
-}
-
-# 15 background companies split into 4 "personalities" so the MoM trend actually
-# moves (the Insights tab needs real variance, not a flat 10-25%). A small
-# per-company scale/jitter keeps same-group companies distinct.
-_GROUPS = [
-    # A - volatile: spiky volume, alternating good/bad months
-    (["NOVA INSTRUMENTS", "VORTEX MACHINERY", "HERALD ELECTRONICS",
-      "PEAK ENGINEERING", "RIVERSTONE CONTROLS"],
-     [35, 12, 40, 8, 38, 10, 42, 15], [5, 40, 8, 45, 6, 38, 10, 42]),
-    # B - steady decline: slow-burn deterioration
-    (["ZENITH HARDWARE", "DELTA TOOLS", "TERRA PACKAGING", "COBALT LOGISTICS"],
-     [25, 23, 20, 18, 15, 12, 10, 8], [15, 18, 22, 26, 30, 35, 40, 45]),
-    # C - steady growth: new client ramping up and improving
-    (["APEX COMPONENTS LTD", "SUMMIT PRECISION", "LYNX SWITCHGEAR"],
-     [10, 13, 16, 20, 24, 28, 33, 38], [35, 30, 25, 20, 16, 12, 9, 7]),
+# ---- Story arc: aggregate monthly targets ------------------------------------
+# Natural time series = trend + seasonality + SMALL autocorrelated noise.
+# The arc is the story; per-company trajectories get normalized onto it.
+MONTHLY_ARC = [
+    {"volume": 470, "eot": 0.72},   # 2025-07 baseline
+    {"volume": 440, "eot": 0.68},   # 2025-08 monsoon trough
+    {"volume": 480, "eot": 0.71},   # 2025-09 monsoon easing
+    {"volume": 530, "eot": 0.74},   # 2025-10 festive ramp
+    {"volume": 570, "eot": 0.70},   # 2025-11 Diwali peak strains quality
+    {"volume": 500, "eot": 0.75},   # 2025-12 normalization
+    {"volume": 540, "eot": 0.78},   # 2026-01 improvement kicks in
+    {"volume": 490, "eot": 0.80},   # 2026-02 improvement holds
 ]
-for _names, _base_vol, _base_late in _GROUPS:
-    for name in _names:
-        f = random.uniform(0.85, 1.25)  # per-company scale so they aren't identical
-        COMPANIES[name] = {
-            "vol": [max(3, round(v * f)) for v in _base_vol],
-            "late": [min(75.0, max(2.0, l + random.uniform(-4, 4))) for l in _base_late],
-        }
-# D - flat / reliable: boring but dependable (stable 15-20 volume, 8-12% late)
-for name in ["ORION VALVES", "SOLARIS FITTINGS", "ECLIPSE MERCHANDISE"]:
-    COMPANIES[name] = {
-        "vol": [random.randint(15, 20) for _ in range(8)],
-        "late": [random.uniform(8, 12) for _ in range(8)],
+
+
+# ---- Smooth trajectories + AR(1) noise ---------------------------------------
+def lerp(a: float, b: float, m: int) -> float:
+    """Smooth linear trajectory from a (month 0) to b (month 7)."""
+    return a + (b - a) * (m / 7.0)
+
+
+def ar1(phi: float = 0.6, amp: float = 0.06) -> list[float]:
+    """Small autocorrelated random walk — month N+1 resembles month N."""
+    out, prev = [], 0.0
+    for _ in range(8):
+        prev = phi * prev + random.uniform(-amp, amp)
+        out.append(prev)
+    return out
+
+
+def traj(v0: float, v1: float, l0: float, l1: float) -> dict:
+    """Company spec: smooth volume + late% endpoints, each x (1 + AR(1) noise)."""
+    vn, ln = ar1(), ar1()
+    return {
+        "vol": [max(1.0, lerp(v0, v1, m) * (1 + vn[m])) for m in range(8)],
+        "late": [min(80.0, max(2.0, lerp(l0, l1, m) * (1 + ln[m]))) for m in range(8)],
     }
+
+
+# Planted stories are sacred — never nudged to fit the arc.
+PLANTED = {"STELLARTECH SYSTEMS", "MERIDIAN ELECTRICALS", "PRISM INDUSTRIES",
+           "ATLAS FASTENERS", "NEXUS FABRICATION"}
+
+COMPANIES: dict[str, dict] = {
+    "STELLARTECH SYSTEMS":  traj(30, 80, 25, 7),    # growth + improving
+    "MERIDIAN ELECTRICALS": traj(20, 45, 30, 6),    # growth + improving
+    "PRISM INDUSTRIES":     traj(40, 5, 8, 60),     # decline + deteriorating
+    "ATLAS FASTENERS":      traj(25, 3, 10, 65),    # decline + deteriorating
+    "NEXUS FABRICATION":    traj(28, 28, 40, 40),   # flat, then churns (below)
+    "CREST AUTOMATION":     traj(20, 20, 7, 7),     # consistently excellent
+    "FALCON EQUIPMENT":     traj(17, 17, 9, 9),     # consistently excellent
+}
+COMPANIES["NEXUS FABRICATION"]["vol"][7] = 0.0      # churn: silent after Jan 2026
+
+# Growth group — new clients ramping up and improving.
+for _n in ["APEX COMPONENTS LTD", "SUMMIT PRECISION", "LYNX SWITCHGEAR"]:
+    COMPANIES[_n] = traj(10, 38, 35, 7)
+# Decline group — slow-burn deterioration.
+for _n in ["ZENITH HARDWARE", "DELTA TOOLS", "TERRA PACKAGING", "COBALT LOGISTICS"]:
+    COMPANIES[_n] = traj(25, 8, 15, 45)
+# Flat group — boring but reliable.
+for _n in ["ORION VALVES", "SOLARIS FITTINGS", "ECLIPSE MERCHANDISE"]:
+    COMPANIES[_n] = traj(random.uniform(15, 20), random.uniform(15, 20),
+                         random.uniform(8, 12), random.uniform(8, 12))
+
+# Formerly-"volatile" group — NORMAL smooth behaviour plus exactly ONE shock
+# month each (independently chosen, so shocks are never synchronised): that
+# month volume -40% and late% +25 points. One bad month each, not alternation.
+SHOCKS: dict[str, int] = {}
+for _n in ["NOVA INSTRUMENTS", "VORTEX MACHINERY", "HERALD ELECTRONICS",
+           "PEAK ENGINEERING", "RIVERSTONE CONTROLS"]:
+    COMPANIES[_n] = traj(random.uniform(15, 30), random.uniform(15, 30),
+                         random.uniform(12, 20), random.uniform(12, 20))
+    _s = random.randint(1, 6)                        # avoid first/last month edges
+    SHOCKS[_n] = _s
+    COMPANIES[_n]["vol"][_s] *= 0.60                 # -40% volume
+    COMPANIES[_n]["late"][_s] = min(80.0, COMPANIES[_n]["late"][_s] + 25)
+
+# ---- Normalize volumes onto the arc (aggregate matches the story) -------------
+for m in range(8):
+    _raw = sum(c["vol"][m] for c in COMPANIES.values())
+    _scale = MONTHLY_ARC[m]["volume"] / _raw if _raw else 0.0
+    for c in COMPANIES.values():
+        c["vol"][m] = max(0, round(c["vol"][m] * _scale))
+COMPANIES["NEXUS FABRICATION"]["vol"][7] = 0         # keep the churn after scaling
 
 # ---- Build the unique-LRN order list -----------------------------------------
 orders: list[dict] = []
 _lrn = 500_000_001
 for name, spec in COMPANIES.items():
     for m in range(8):
-        for _ in range(spec["vol"][m]):
-            orders.append({"lrn": _lrn, "company": name, "month": m,
-                           "late_pct": spec["late"][m]})
+        for _ in range(int(spec["vol"][m])):
+            orders.append({"lrn": _lrn, "company": name, "month": m})
             _lrn += 1
 
 
@@ -214,14 +250,56 @@ for o in _ne[:15]:
              expected=MATRIX["North-East"] + 1, ne_special=True)
 
 
-def decide_sla(o) -> str:
-    lp = o["late_pct"] / 100.0
+# ---- Late model: base late% x ODA x monsoon ----------------------------------
+ODA_MULT = 2.0        # ODA orders ~2x the late rate of non-ODA
+MONSOON_MULT = 1.8    # extra penalty for East/NE in Jul-Sep
+NUDGE_MAX = 5.0       # background late% may be nudged at most +/-5 points
+NUDGE = [0.0] * 8     # per-month nudge, background companies only
+
+
+def base_late(o: dict, nudge: float | None = None) -> float:
+    lp = COMPANIES[o["company"]]["late"][o["month"]]
+    if o["company"] not in PLANTED:            # planted stories are sacred
+        lp += NUDGE[o["month"]] if nudge is None else nudge
+    return min(85.0, max(1.0, lp))
+
+
+def p_late(o: dict, nudge: float | None = None) -> float:
+    lp = base_late(o, nudge) / 100.0
     if o["oda"]:
-        lp = max(lp, 0.35)                              # ODA worse (~35%)
+        lp *= ODA_MULT
     if o["zone"] in ("East", "North-East") and o["month"] in MONSOON_MONTHS:
-        lp *= 2                                         # monsoon dip
-    lp = min(0.95, max(0.02, lp))
-    if random.random() < lp:
+        lp *= MONSOON_MULT
+    return min(0.95, max(0.02, lp))
+
+
+def expected_eot(month: int, nudge: float) -> float | None:
+    """Volume-weighted expected E+OT for a month at a given background nudge."""
+    dels = [o for o in orders if o["month"] == month and o["status"] == "Delivered"]
+    if not dels:
+        return None
+    tot = sum(1.0 if o.get("ne_special") else p_late(o, nudge) for o in dels)
+    return 1.0 - tot / len(dels)
+
+
+# Bisect the nudge so expected aggregate E+OT lands on the arc target.
+for _m in range(8):
+    _target = MONTHLY_ARC[_m]["eot"]
+    _lo, _hi = -NUDGE_MAX, NUDGE_MAX
+    for _ in range(40):
+        _mid = (_lo + _hi) / 2
+        _e = expected_eot(_m, _mid)
+        if _e is None:
+            break
+        if _e > _target:      # too good -> need more late -> raise nudge
+            _lo = _mid
+        else:
+            _hi = _mid
+    NUDGE[_m] = round((_lo + _hi) / 2, 3)
+
+
+def decide_sla(o) -> str:
+    if random.random() < p_late(o):
         return "Late"
     return "On Time" if random.random() < 0.22 else "Early"
 
@@ -322,4 +400,32 @@ for i, name in enumerate(FILE_NAMES):
     df = pd.DataFrame(files[i], columns=COLUMNS)
     df.to_excel(OUT / name, index=False, engine="openpyxl")
     print(f"  {name}: {len(df)} rows")
+
+# ---- Verification table ------------------------------------------------------
+print("\nMonth   | Volume | target | Early | OnTime |  Late | E+OT% | target | nudge")
+print("--------+--------+--------+-------+--------+-------+-------+--------+------")
+_vols, _eots = [], []
+for m in range(8):
+    _mo = [o for o in orders if o["month"] == m]
+    _de = [o for o in _mo if o["status"] == "Delivered"]
+    e = sum(1 for o in _de if o["sla"] == "Early")
+    ot = sum(1 for o in _de if o["sla"] == "On Time")
+    la = sum(1 for o in _de if o["sla"] == "Late")
+    eot = (e + ot) / max(1, e + ot + la) * 100
+    _vols.append(len(_mo))
+    _eots.append(eot)
+    print(f"{MONTH_WINDOWS[m][0]:%Y-%m} | {len(_mo):6d} | {MONTHLY_ARC[m]['volume']:6d} |"
+          f" {e:5d} | {ot:6d} | {la:5d} | {eot:5.1f} | {MONTHLY_ARC[m]['eot'] * 100:6.1f} |"
+          f" {NUDGE[m]:+5.2f}")
+
+_vd = max(abs(_vols[i + 1] - _vols[i]) / _vols[i] * 100 for i in range(7))
+_ed = max(abs(_eots[i + 1] - _eots[i]) / _eots[i] * 100 for i in range(7))
+print(f"\nMax MoM change: volume {_vd:.1f}% | E+OT {_ed:.1f}%   (must stay under 20%)")
+print(f"E+OT range: {min(_eots):.1f}% .. {max(_eots):.1f}%")
+
+print("\nSmooth trajectories (monthly unique LRNs):")
+for _n in ["STELLARTECH SYSTEMS", "PRISM INDUSTRIES", "NOVA INSTRUMENTS"]:
+    _mv = [sum(1 for o in orders if o["company"] == _n and o["month"] == m) for m in range(8)]
+    _sh = f"   shock month: {MONTH_WINDOWS[SHOCKS[_n]][0]:%Y-%m}" if _n in SHOCKS else ""
+    print(f"  {_n:22s} {_mv}{_sh}")
 print("Done.")
