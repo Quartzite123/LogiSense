@@ -15,10 +15,17 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # --- make the existing `app` package importable (repo root on sys.path) ----
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+# Load backend/.env (GROQ_API_KEY, etc.) from an absolute path so it's found
+# regardless of where uvicorn is started — `python -m uvicorn backend.main:app`
+# from the repo root and `uvicorn main:app` from backend/ both pick it up.
+load_dotenv(Path(__file__).parent / ".env")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,6 +39,7 @@ from backend.routers import (
     upload, landing, transit, tat, aggregate, aggregate_transit, customize, exports, edit,
 )
 from backend.routers.insights import router as insights_router
+from backend.routers.assistant import router as assistant_router
 
 DEMO_DIR = ROOT / "tools" / "sample_data"
 
@@ -124,6 +132,7 @@ app.include_router(customize.router, prefix="/api/customize", tags=["customize"]
 app.include_router(exports.router, prefix="/api/export", tags=["exports"])
 app.include_router(edit.router, prefix="/api/edit", tags=["edit"])
 app.include_router(insights_router)  # already prefixed /api/insights
+app.include_router(assistant_router)  # already prefixed /api/assistant
 
 
 @app.get("/api/health")

@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import { UIProvider } from './context/ui.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import Landing from './pages/Landing.jsx'
@@ -8,6 +9,9 @@ import Aggregate from './pages/Aggregate.jsx'
 import AggregateTransit from './pages/AggregateTransit.jsx'
 import Customize from './pages/Customize.jsx'
 import Edit from './pages/Edit.jsx'
+
+// Insights is code-split — it pulls in the chat + pattern components lazily.
+const Insights = lazy(() => import('./pages/Insights.jsx'))
 
 // Placeholder for the AI Assistant (Phase 3).
 function Placeholder({ title }) {
@@ -27,17 +31,21 @@ export default function App() {
       <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
         <Sidebar />
         <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/tat" element={<TAT />} />
-            <Route path="/transit" element={<Transit />} />
-            <Route path="/aggregate" element={<Aggregate />} />
-            <Route path="/aggregate-transit" element={<AggregateTransit />} />
-            <Route path="/customize" element={<Customize />} />
-            <Route path="/edit" element={<Edit />} />
-            <Route path="/assistant" element={<Placeholder title="AI Assistant" />} />
-            <Route path="*" element={<Placeholder title="Not found" />} />
-          </Routes>
+          <Suspense fallback={<div className="p-10 text-sm text-text-muted">Loading…</div>}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/tat" element={<TAT />} />
+              <Route path="/transit" element={<Transit />} />
+              <Route path="/aggregate" element={<Aggregate />} />
+              <Route path="/aggregate-transit" element={<AggregateTransit />} />
+              <Route path="/customize" element={<Customize />} />
+              <Route path="/edit" element={<Edit />} />
+              <Route path="/insights" element={<Insights />} />
+              {/* Old AI Assistant route → keep bookmarks working, redirect to Insights. */}
+              <Route path="/assistant" element={<Navigate to="/insights" replace />} />
+              <Route path="*" element={<Placeholder title="Not found" />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </UIProvider>

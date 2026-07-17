@@ -65,7 +65,7 @@ const NAV = [
   },
   { to: '/customize', label: 'Customize', sub: 'Ad-hoc query', Icon: SlidersIcon },
   { to: '/edit', label: 'Edit', sub: 'Reference data', Icon: PencilIcon },
-  { to: '/assistant', label: 'AI Assistant', sub: 'Ask anything', Icon: SparkIcon },
+  { to: '/insights', label: 'AI Insights', sub: 'Patterns · Chat', Icon: SparkIcon },
 ]
 
 export default function Sidebar() {
