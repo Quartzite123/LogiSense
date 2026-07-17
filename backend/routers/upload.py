@@ -20,7 +20,13 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from app.pipeline.ingest import IngestError, clear_all_shipments, ingest_file
+from app.store.db import get_conn
 from app.store.queries import load_latest
+from backend.insights.snapshot import (
+    generate_and_cache_insights,
+    get_previous_snapshot,
+    write_upload_snapshot,
+)
 from backend.schemas import COLUMN_DISPLAY_NAMES, UploadResponse
 
 router = APIRouter()
@@ -46,6 +52,22 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
     # After an always-replace ingest every winner is a fresh insert, but include
     # updates too so the count stays correct if that behaviour ever changes.
     rows_inserted = int(summary["rows_new"]) + int(summary["rows_updated"])
+
+    # Insights trigger flow (INSIGHTS_SPEC §4): snapshot -> detectors -> narrate
+    # -> cache. Runs synchronously after ingest but is fully non-fatal — a failure
+    # here (e.g. Groq down) must never fail the upload itself.
+    try:
+        conn = get_conn()
+        try:
+            snapshot_id = write_upload_snapshot(conn)
+            prev = get_previous_snapshot(conn, snapshot_id)
+            generate_and_cache_insights(conn, snapshot_id, prev)
+            print(f"[upload] Insights generated for snapshot {snapshot_id}")
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[upload] Insights generation failed (non-fatal): {e}")
+
     return UploadResponse(
         success=True,
         rows_inserted=rows_inserted,

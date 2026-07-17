@@ -24,13 +24,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.store.db import init_db
+from app.store.db import get_conn, init_db
 from app.store.seed import seed_all_if_empty
 from app.store.queries import count_latest
 
 from backend.routers import (
     upload, landing, transit, tat, aggregate, aggregate_transit, customize, exports, edit,
 )
+from backend.routers.insights import router as insights_router
 
 DEMO_DIR = ROOT / "tools" / "sample_data"
 
@@ -62,6 +63,28 @@ def _auto_seed_demo_data() -> None:
         winners = int(summary["rows_new"]) + int(summary["rows_updated"])
         print(f"  {os.path.basename(path)}: {winners} rows")
     print(f"[startup] Demo seed complete: {count_latest()} unique LRNs in shipments_latest")
+
+    # Insights on the demo data (INSIGHTS_SPEC §3.1): seed a synthetic "previous
+    # state" first so the very first What-Changed digest has something to compare
+    # against. Non-fatal — a failure here must never block startup.
+    try:
+        from backend.insights.snapshot import (
+            generate_and_cache_insights,
+            get_previous_snapshot,
+            seed_snapshot_zero,
+            write_upload_snapshot,
+        )
+        conn = get_conn()
+        try:
+            seed_snapshot_zero(conn)                       # synthetic previous state
+            snapshot_id = write_upload_snapshot(conn, file_count=len(demo_files))
+            prev = get_previous_snapshot(conn, snapshot_id)
+            generate_and_cache_insights(conn, snapshot_id, prev)
+            print("[startup] Insights generated from demo data")
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[startup] Insights generation failed (non-fatal): {e}")
 
 
 @asynccontextmanager
@@ -100,6 +123,7 @@ app.include_router(aggregate_transit.router, prefix="/api/aggregate-transit", ta
 app.include_router(customize.router, prefix="/api/customize", tags=["customize"])
 app.include_router(exports.router, prefix="/api/export", tags=["exports"])
 app.include_router(edit.router, prefix="/api/edit", tags=["edit"])
+app.include_router(insights_router)  # already prefixed /api/insights
 
 
 @app.get("/api/health")

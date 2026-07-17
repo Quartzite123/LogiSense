@@ -224,6 +224,41 @@ CREATE TABLE IF NOT EXISTS origin_recents (
     last_seen  TEXT NOT NULL,
     seen_count INTEGER NOT NULL DEFAULT 1
 );
+
+-- ---- AI Insights: lightweight metrics snapshot written after every upload --
+-- (INSIGHTS_SPEC §4). One row per upload; per-company rows in snapshot_companies;
+-- the narrated result is cached in insight_cache keyed by snapshot_id.
+CREATE TABLE IF NOT EXISTS upload_snapshots (
+    snapshot_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    uploaded_at  TEXT NOT NULL,
+    file_count   INTEGER DEFAULT 1,
+    total        INTEGER,
+    delivered    INTEGER,
+    eot_percent  REAL,
+    late_count   INTEGER,
+    rto_count    INTEGER,
+    oda_count    INTEGER,
+    date_min     TEXT,
+    date_max     TEXT
+);
+CREATE TABLE IF NOT EXISTS snapshot_companies (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    snapshot_id  INTEGER REFERENCES upload_snapshots(snapshot_id),
+    company      TEXT,
+    total        INTEGER,
+    delivered    INTEGER,
+    eot_percent  REAL,
+    late_count   INTEGER,
+    in_transit   INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_snap_companies ON snapshot_companies(snapshot_id);
+CREATE TABLE IF NOT EXISTS insight_cache (
+    snapshot_id    INTEGER PRIMARY KEY REFERENCES upload_snapshots(snapshot_id),
+    generated_at   TEXT,
+    digest_bullets TEXT,     -- JSON array of 5 strings
+    patterns       TEXT,     -- JSON array of pattern objects
+    root_causes    TEXT      -- JSON object keyed by company name
+);
 """
 
 
