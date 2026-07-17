@@ -28,7 +28,7 @@ const STATUS_COLORS = {
 }
 
 const daysRemaining = (v) =>
-  v == null ? '—' : <span className="font-mono" style={{ color: v < 0 ? '#F87171' : v > 0 ? '#4ADE80' : '#60A5FA' }}>{v}</span>
+  v == null ? '—' : <span className="font-mono" style={{ color: v < 0 ? '#F87171' : v > 0 ? '#4ADE80' : '#FBBF24' }}>{v}</span>
 
 const COLUMN_DEFS = [
   { key: 'lrn', label: 'LRN' },

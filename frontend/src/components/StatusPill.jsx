@@ -9,7 +9,7 @@ const PILL = {
   Delivered: ['#4ADE80', 'rgba(74,222,128,0.15)'],
   'In Transit': ['#60A5FA', 'rgba(96,165,250,0.15)'],
   Dispatched: ['#60A5FA', 'rgba(96,165,250,0.15)'],
-  Manifested: ['#94A3B8', 'rgba(148,163,184,0.15)'],
+  Manifested: ['#71717A', 'rgba(113,113,122,0.15)'],
   Pending: ['#FBBF24', 'rgba(251,191,36,0.15)'],
   RTO: ['#94A3B8', 'rgba(148,163,184,0.15)'],
   'Due Today': ['#FBBF24', 'rgba(251,191,36,0.15)'],
