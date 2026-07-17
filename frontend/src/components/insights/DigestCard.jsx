@@ -6,30 +6,25 @@ import { useIsMobile } from '../../lib/useIsMobile.js'
 
 const TEN_MIN = 10 * 60 * 1000
 
-// Keyword → sentiment (INSIGHTS_SPEC §3.1). First matching keyword by position wins,
-// so "volume down 8%" reads negative and "E+OT improved" reads positive.
-const POS = ['improved', 'improve', 'grew', 'growth', 'gainer', 'gained', 'better', 'up ', 'recovered', 'standout']
-const NEG = ['fell', 'dropped', 'drop', 'rose', 'worse', 'worsen', 'lost', 'zero', '0 order', 'silent', 'churn', 'deteriorat', 'collaps', 'decline', 'down ', 'slipped']
+// Digest bullets show a ▲/▼/● indicator. The Groq narrator already prefixes each
+// bullet with a glyph, so we honour that leading glyph first; the deterministic
+// fallback has no prefix, so we scan the whole bullet for sentiment keywords.
+// A leading glyph is stripped before display (stripLead) so it isn't doubled.
+const POSITIVE = ['improved', 'increased', 'up ', 'grew', 'better', 'gained', 'higher', 'gainer', 'standout', 'recovered']
+const NEGATIVE = ['fell', 'dropped', 'decreased', 'down ', 'worse', 'lost', 'zero', 'churned', 'deteriorat', 'declined', 'risk', 'slipped', 'silent']
 
-function sentiment(text) {
-  const t = ` ${text.toLowerCase()} `
-  let best = null // { kind, idx }
-  for (const w of POS) {
-    const i = t.indexOf(w)
-    if (i >= 0 && (best === null || i < best.idx)) best = { kind: 'pos', idx: i }
-  }
-  for (const w of NEG) {
-    const i = t.indexOf(w)
-    if (i >= 0 && (best === null || i < best.idx)) best = { kind: 'neg', idx: i }
-  }
-  return best ? best.kind : 'neutral'
+function getIndicator(bullet) {
+  const lead = bullet.trim().charAt(0)
+  if (lead === '▲') return { symbol: '▲', color: '#4ADE80' }
+  if (lead === '▼') return { symbol: '▼', color: '#F87171' }
+  if (lead === '●') return { symbol: '●', color: '#71717A' }
+  const lower = bullet.toLowerCase()
+  if (POSITIVE.some((w) => lower.includes(w))) return { symbol: '▲', color: '#4ADE80' }
+  if (NEGATIVE.some((w) => lower.includes(w))) return { symbol: '▼', color: '#F87171' }
+  return { symbol: '●', color: '#71717A' }
 }
 
-const MARK = {
-  pos: { glyph: '▲', color: '#4ADE80' },
-  neg: { glyph: '▼', color: '#F87171' },
-  neutral: { glyph: '●', color: '#71717A' },
-}
+const stripLead = (b) => b.replace(/^\s*[▲▼●]\s*/, '')
 
 function fmtDate(iso) {
   if (!iso) return null
@@ -122,11 +117,11 @@ export default function DigestCard() {
         <>
           <ul className="mt-4 flex flex-col gap-2.5">
             {bullets.map((b, i) => {
-              const m = MARK[sentiment(b)]
+              const ind = getIndicator(b)
               return (
                 <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-[#E4E4E7]">
-                  <span className="mt-px shrink-0 font-mono text-xs" style={{ color: m.color }}>{m.glyph}</span>
-                  <span>{b}</span>
+                  <span className="mt-px shrink-0 font-mono text-xs" style={{ color: ind.color }}>{ind.symbol}</span>
+                  <span>{stripLead(b)}</span>
                 </li>
               )
             })}

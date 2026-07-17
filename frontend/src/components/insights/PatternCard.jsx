@@ -15,6 +15,8 @@ export default function PatternCard({ pattern, overallOdaPct }) {
   const [open, setOpen] = useState(false)
   const sev = SEV[pattern.severity] || SEV.grey
   const canExpand = pattern.has_root_cause && pattern.company
+  // Drop any stray field-name bullets (e.g. "Severity level: red") the LLM may emit.
+  const cleanBullets = (pattern.bullets || []).filter((b) => !b.toLowerCase().includes('severity'))
 
   const rc = useQuery({
     queryKey: ['root-cause', pattern.company],
@@ -48,7 +50,7 @@ export default function PatternCard({ pattern, overallOdaPct }) {
         </h3>
 
         <ul className="mt-3 flex flex-col gap-1.5">
-          {(pattern.bullets || []).map((b, i) => (
+          {cleanBullets.map((b, i) => (
             <li key={i} className="flex items-start gap-2 text-[13px] leading-relaxed text-[#A1A1AA]">
               <span className="mt-1 shrink-0 text-[#52525B]">•</span>
               <span>{b}</span>

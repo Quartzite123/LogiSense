@@ -95,16 +95,33 @@ DETECTOR FINDINGS:
 STRUCTURAL FACTS PER FLAGGED COMPANY (use these exact numbers for root_causes):
 {json.dumps(root_cause_facts, indent=2)}
 
+WRITING QUALITY — study these examples before you write anything:
+
+BAD headline:  "Volume decline"
+GOOD headline: "PRISM INDUSTRIES: volume fell 57.9% while late rate tripled over 8 months — churn imminent"
+
+BAD bullet:  "Severity level: red"
+GOOD bullet: "Orders fell from 133/month to 56 (first vs last window)"
+
+BAD digest:  "Delivered shipments increased by 345"
+GOOD digest: "▲ E+OT improved 2.5 points (70.8% → 73.3%) — operations improving across most clients"
+
 Return ONLY valid JSON with this exact structure:
 {{
-  "digest": ["bullet 1 — what changed vs last upload (max 20 words)", "bullet 2", "bullet 3", "bullet 4", "bullet 5"],
+  "digest": [
+    "▲ E+OT improved 2.5 points (70.8% → 73.3%) — operations improving across most clients",
+    "▼ PRISM INDUSTRIES volume fell 57.9% as late deliveries climbed 27 points",
+    "● NEXUS FABRICATION shipped 0 orders this period after months of steady volume",
+    "bullet 4 (must start with ▲, ▼, or ●)",
+    "bullet 5 (must start with ▲, ▼, or ●)"
+  ],
   "patterns": [
     {{
       "id": "volume_decline_COMPANY",
       "company": "COMPANY NAME or null if not company-specific",
       "severity": "red|yellow|green|grey",
-      "headline": "One sentence, max 15 words, plain English",
-      "bullets": ["stat bullet 1", "stat bullet 2", "stat bullet 3"],
+      "headline": "Names the company + specific numbers, e.g. 'PRISM INDUSTRIES: volume down 57.9% as late rate climbed 27 pts'",
+      "bullets": ["human-readable stat with context", "another concrete stat", "a third concrete stat"],
       "has_root_cause": true
     }}
   ],
@@ -121,14 +138,32 @@ Return ONLY valid JSON with this exact structure:
 }}
 
 Rules:
-- digest: 5 bullets, ordered by importance. If a previous snapshot exists,
-  describe what changed vs it. If not, describe the current state as a baseline.
-- patterns: include one entry per fired detector finding. severity: red=churn/
-  critical, yellow=watch/anomaly, green=growth/improvement, grey=informational.
+- Headlines MUST name the company and include specific numbers from the data
+  (e.g. "57.9% volume drop", never a vague "volume drop"). Non-company patterns
+  (ODA, seasonal, bad lane, overall trend) still lead with the key number.
+- Bullets MUST be human-readable insights a founder understands. NEVER output
+  raw field names like "severity", "severity_level", "oda_share", or
+  "vol_change_pct" — translate every number into plain language.
+- Digest bullets MUST each start with ▲ (improvement), ▼ (worsening), or
+  ● (neutral / notable).
+- Every number MUST carry context — write "57.9% volume drop over 8 months",
+  never a bare "57.9%".
+- Write as if explaining to a non-technical founder, not a developer.
+- digest: exactly 5 bullets, ordered by importance. Compare to the previous
+  snapshot when one exists; otherwise describe the current state as a baseline.
+- patterns: output ONE card per fired finding and DO NOT omit or merge any —
+  include EVERY volume-decline company, EVERY churned company, EVERY growth
+  company, plus the ODA-lateness, seasonal-anomaly, bad-lane, and overall-trend
+  findings whenever they appear in DETECTOR FINDINGS (usually 8-12 cards total).
+- Assign severity EXACTLY like this (do not improvise): churned → red;
+  growth and new-client → green; ODA-lateness and seasonal-anomaly → yellow;
+  bad-lane and overall-trend → grey; for a volume-decline company use the
+  "severity" value given in that finding. (red=churn/critical, yellow=watch,
+  green=growth, grey=informational.)
 - root_causes: only for companies flagged in patterns with has_root_cause=true.
   Use ONLY the numbers in STRUCTURAL FACTS above.
 - Never invent numbers. Only use what is in the data above.
-- Max total response: 1500 tokens."""
+- Keep the total response under 2000 tokens."""
 
 
 def _call_groq(
@@ -151,7 +186,7 @@ def _call_groq(
                 {"role": "system", "content": system},
                 {"role": "user", "content": "Generate the insights JSON now."},
             ],
-            "max_tokens": 1500,
+            "max_tokens": 2000,
             "temperature": 0.2,
             "response_format": {"type": "json_object"},
         },
