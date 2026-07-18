@@ -10,7 +10,7 @@ import { apiUrl } from '../../lib/api.js'
 const SUGGESTIONS = [
   'Which client is most at risk?',
   'Why is PRISM INDUSTRIES declining?',
-  'How is ODA affecting our SLA?',
+  'How is ODA affecting our E+OT?',
   'What improved this period?',
 ]
 
