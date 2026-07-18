@@ -20,6 +20,22 @@ export async function fetchJSON(url) {
   return res.json()
 }
 
+// JSON-body mutation (POST/PUT/PATCH). Sends the session cookie like fetchJSON,
+// throws on non-2xx with the server's `detail` message.
+export async function sendJSON(url, method, body) {
+  const res = await fetch(apiUrl(url), {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const b = await res.json().catch(() => ({}))
+    throw new Error(b.detail || `${url} → HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
 // Trigger a browser download for a GET endpoint that returns an attachment.
 export function download(url) {
   const a = document.createElement('a')

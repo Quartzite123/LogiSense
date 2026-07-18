@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
 // Inline SVG icons (no icon library — built from scratch per spec).
 const ico = (paths) => (props) =>
@@ -51,6 +51,12 @@ const SparkIcon = ico(
 )
 const PencilIcon = ico(<path d="M3 13l3-1L13 5l-2-2-7 7-1 3z" />)
 const ChevronIcon = ico(<path d="M10 4l-4 4 4 4" />)
+const LogoutIcon = ico(
+  <>
+    <path d="M6 14H3V2h3" />
+    <path d="M10 11l3-3-3-3M13 8H6" />
+  </>,
+)
 
 const NAV = [
   { to: '/', label: 'Landing', sub: 'Overview', Icon: GridIcon, end: true },
@@ -70,6 +76,12 @@ const NAV = [
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const navigate = useNavigate()
+
+  const signOut = () => {
+    localStorage.removeItem('logi_auth')
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside
@@ -143,6 +155,22 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Sign out */}
+      <div className="border-t border-border p-2">
+        <button
+          onClick={signOut}
+          title="Sign out"
+          className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-text-muted transition-colors hover:bg-surface hover:text-text-primary ${
+            collapsed ? 'justify-center' : ''
+          }`}
+        >
+          <span className="shrink-0">
+            <LogoutIcon />
+          </span>
+          {!collapsed && <span className="text-sm font-medium">Sign out</span>}
+        </button>
+      </div>
     </aside>
   )
 }

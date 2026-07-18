@@ -81,9 +81,22 @@ body {
   animation: ls-toast-in 0.18s ease-out;
 }
 
+/* Login card shake on invalid credentials */
+@keyframes login-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.login-shake {
+  animation: login-shake 0.4s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
-  .toast-in {
+  .toast-in,
+  .login-shake {
     animation: none;
   }
 }

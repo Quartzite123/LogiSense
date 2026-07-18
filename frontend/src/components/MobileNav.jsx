@@ -94,6 +94,27 @@ export default function MobileNav() {
                 </NavLink>
               ))}
             </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('logi_auth')
+                window.location.href = '/login'
+              }}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                textAlign: 'left',
+                color: '#F87171',
+                background: 'none',
+                border: 'none',
+                fontSize: '15px',
+                cursor: 'pointer',
+                borderTop: '1px solid #27272A',
+                marginTop: '8px',
+                paddingTop: '16px',
+              }}
+            >
+              Sign out
+            </button>
           </div>
         </>
       )}
