@@ -108,7 +108,7 @@ export default function Landing() {
         <>
           <KpiSection query={kpis} />
 
-          <div className="flex flex-col gap-6 lg:flex-row" style={{ maxHeight: 480 }}>
+          <div className="trend-chart-container flex flex-col gap-6 lg:max-h-[480px] lg:flex-row">
             <Panel title="Overall Delivery Performance" className="lg:basis-[35%]">
               {donut.isLoading || !donut.data ? (
                 <Skeleton height={300} />
@@ -125,7 +125,7 @@ export default function Landing() {
           </div>
 
           {trendRows.length > 0 && (
-            <Panel title="Monthly Summary">
+            <Panel title="Monthly Summary" className="monthly-summary-table">
               <DataTable columns={TREND_COLUMNS} data={trendRows} />
             </Panel>
           )}

@@ -133,4 +133,17 @@ body {
   .recharts-wrapper {
     max-width: 100% !important;
   }
+
+  /* Landing: keep the trend chart row and the Monthly Summary table in normal
+     flow (no clipping / no overlap) when they stack on mobile. */
+  .trend-chart-container {
+    position: relative !important;
+    z-index: 1;
+    max-height: none !important;
+  }
+  .monthly-summary-table {
+    position: relative !important;
+    z-index: 1;
+    margin-top: 16px;
+  }
 }
