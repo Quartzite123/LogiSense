@@ -12,6 +12,15 @@
 
 ---
 
+## Live Demo
+
+- **Dashboard:** https://logi-sense-one.vercel.app
+- **API docs:** https://logisense-1dvc.onrender.com/docs
+- Demo data: 4,017 shipments across 22 companies (Jul 2025 – Feb 2026)
+- Upload `tools/demo_upload.xlsx` to see the What-Changed digest in action
+
+---
+
 ## Table of Contents
 
 1. [What This Project Does](#1-what-this-project-does)
