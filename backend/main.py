@@ -178,9 +178,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://logisense.vercel.app",
+        "https://logi-sense.vercel.app",
+        "https://logisense-1dvc.onrender.com",
     ],
-    allow_origin_regex=r"https://logisense-[a-z0-9-]+\.vercel\.app",
+    allow_origin_regex=r"https://logi-sense-[a-z0-9-]+\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
