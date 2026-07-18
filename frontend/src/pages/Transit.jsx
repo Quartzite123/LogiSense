@@ -107,7 +107,7 @@ export default function Transit() {
   const isEmpty = ordersQ.isSuccess && rows.length === 0
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
+    <div className="page-container mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
       <PageHeader title="Transit" subtitle="In-flight orders · Risk triage" />
 
       {isEmpty ? (

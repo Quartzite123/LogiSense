@@ -128,7 +128,7 @@ export default function AggregateTransit() {
   const isEmpty = companies.isSuccess && companies.data.length === 0
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
+    <div className="page-container mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
       <PageHeader title="Aggregate Transit" subtitle="Company-wise in-flight orders" />
 
       {companies.isError ? (

@@ -165,7 +165,7 @@ export default function Edit() {
   const tabs = ['Region Matrix', 'Pincode Master']
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
+    <div className="page-container mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
       <PageHeader title="Edit" subtitle="Reference data · read-only" showUpload={false} />
 
       <div className="flex gap-6 border-b border-[#27272A]">

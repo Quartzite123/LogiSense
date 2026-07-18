@@ -99,12 +99,12 @@ body {
   .main-content {
     margin-left: 0 !important;
     width: 100% !important;
+    padding: 0 !important;
   }
 
-  /* Reduce page padding + leave room for the fixed bottom nav bar */
+  /* Every page gets bottom padding so content clears the fixed bottom nav bar */
   .page-container {
-    padding: 16px !important;
-    padding-bottom: 72px !important;
+    padding: 16px 16px 80px 16px !important;
   }
 
   /* Keep the page subtitle on one line — truncate instead of wrapping */
@@ -113,5 +113,24 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: calc(100vw - 180px);
+  }
+
+  /* Wide tables scroll horizontally instead of overflowing the viewport */
+  .overflow-x-auto,
+  table {
+    overflow-x: auto !important;
+    display: block !important;
+    max-width: 100vw !important;
+  }
+
+  /* KPI / card grids stack to a single column — scoped to .page-container so it
+     never clobbers desktop layouts or component-internal grids (MobileNav etc.) */
+  .page-container .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Charts never exceed the viewport width */
+  .recharts-wrapper {
+    max-width: 100% !important;
   }
 }

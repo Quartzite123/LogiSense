@@ -99,7 +99,7 @@ export default function Landing() {
   const isEmpty = kpis.isSuccess && kpis.data?.total === 0
 
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
+    <div className="page-container mx-auto flex max-w-[1600px] flex-col gap-8 px-10 py-8">
       <PageHeader title="Landing" subtitle="Overview of all shipments" />
 
       {isEmpty ? (
