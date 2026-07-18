@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '../components/PageHeader.jsx'
 import DataTable from '../components/DataTable.jsx'
 import Skeleton from '../components/Skeleton.jsx'
-import { fetchJSON, sendJSON } from '../lib/api.js'
+import { apiUrl, fetchJSON, sendJSON } from '../lib/api.js'
 import { useUI } from '../context/ui.jsx'
+
+const BTN_PRIMARY = 'rounded-lg px-4 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50'
+const BTN_SECONDARY =
+  'rounded-lg border border-[#27272A] bg-[#15151A] px-4 py-2 text-sm text-[#F8F8F8] hover:border-[#3F3F46] disabled:opacity-50'
 
 function MatrixTab() {
   const ui = useUI()
@@ -49,6 +53,22 @@ function MatrixTab() {
     }
   }
 
+  async function reset() {
+    if (!window.confirm('Reset matrix to original values? This cannot be undone.')) return
+    setSaving(true)
+    try {
+      await sendJSON('/api/edit/matrix/reset', 'POST', {})
+      ui?.toast('success', 'Matrix reset to original values')
+      setEditing(false)
+      setDraft(null)
+      qc.invalidateQueries({ queryKey: ['edit', 'matrix'] })
+    } catch (e) {
+      ui?.toast('error', e.message || 'Reset failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="rounded-xl border border-[#27272A] bg-[#0F0F11] p-5">
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -58,30 +78,22 @@ function MatrixTab() {
         </p>
         {editing ? (
           <div className="flex shrink-0 gap-2">
-            <button
-              onClick={save}
-              disabled={saving}
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
-              style={{ background: '#FFD60A' }}
-            >
+            <button onClick={save} disabled={saving} className={BTN_PRIMARY} style={{ background: '#FFD60A' }}>
               {saving ? 'Saving…' : 'Save changes'}
             </button>
-            <button
-              onClick={cancel}
-              disabled={saving}
-              className="rounded-lg border border-[#27272A] bg-[#15151A] px-4 py-2 text-sm text-[#F8F8F8] hover:border-[#3F3F46] disabled:opacity-50"
-            >
+            <button onClick={cancel} disabled={saving} className={BTN_SECONDARY}>
               Cancel
             </button>
           </div>
         ) : (
-          <button
-            onClick={startEdit}
-            className="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold text-black"
-            style={{ background: '#FFD60A' }}
-          >
-            Edit matrix
-          </button>
+          <div className="flex shrink-0 gap-2">
+            <button onClick={startEdit} className={BTN_PRIMARY} style={{ background: '#FFD60A' }}>
+              Edit matrix
+            </button>
+            <button onClick={reset} disabled={saving} className={BTN_SECONDARY}>
+              Reset to defaults
+            </button>
+          </div>
         )}
       </div>
 
@@ -200,8 +212,14 @@ const PINCODE_COLUMNS = [
 ]
 
 function PincodeTab() {
+  const ui = useUI()
+  const qc = useQueryClient()
+  const fileRef = useRef(null)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [file, setFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [resetting, setResetting] = useState(false)
   const perPage = 50
 
   const q = useQuery({
@@ -212,10 +230,81 @@ function PincodeTab() {
 
   const total = q.data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / perPage))
+  const refresh = () => qc.invalidateQueries({ queryKey: ['edit', 'pincodes'] })
+
+  async function resetPincodes() {
+    if (!window.confirm('Reset all pincode ODA values to original? This cannot be undone.')) return
+    setResetting(true)
+    try {
+      const data = await sendJSON('/api/edit/pincodes/reset', 'POST', {})
+      ui?.toast('success', `Pincode master reset — ${Number(data.rows_reset).toLocaleString()} pincodes restored`)
+      setSearch('')
+      setPage(1)
+      refresh()
+    } catch (e) {
+      ui?.toast('error', e.message || 'Reset failed')
+    } finally {
+      setResetting(false)
+    }
+  }
+
+  async function uploadCustom() {
+    if (!file || uploading) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch(apiUrl('/api/edit/pincodes/upload'), { method: 'POST', credentials: 'include', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.detail || `Upload failed (HTTP ${res.status})`)
+      ui?.toast('success', `${Number(data.rows_loaded).toLocaleString()} pincodes loaded — pincode master updated`)
+      setFile(null)
+      setSearch('')
+      setPage(1)
+      refresh()
+    } catch (e) {
+      ui?.toast('error', e.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
+      {/* Custom pincode file upload */}
+      <div className="rounded-xl border-2 border-dashed border-[#27272A] p-5">
+        <div className="text-sm font-medium text-[#F8F8F8]">Upload a custom pincode master (.xlsx)</div>
+        <div className="mt-1 text-xs text-[#71717A]">Required columns: pincode, city, state, zone, oda</div>
+        <div className="text-xs text-[#71717A]">Minimum 100 rows · Replaces current master for this session</div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button onClick={() => fileRef.current?.click()} className={BTN_SECONDARY}>
+            Choose file
+          </button>
+          {file && (
+            <>
+              <span className="text-xs text-[#A1A1AA]">{file.name}</span>
+              <button
+                onClick={uploadCustom}
+                disabled={uploading}
+                className={BTN_PRIMARY}
+                style={{ background: '#FFD60A' }}
+              >
+                {uploading ? 'Uploading…' : 'Upload & Replace'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Search + count + reset */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <input
           value={search}
           onChange={(e) => {
@@ -225,10 +314,20 @@ function PincodeTab() {
           placeholder="Search pincode / city / state…"
           className="w-72 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-2 text-sm text-[#F8F8F8] placeholder:text-[#71717A] focus:border-[#3F3F46] focus:outline-none"
         />
-        <span className="text-sm text-[#71717A]">
-          <span className="font-mono text-[#F8F8F8]">{total.toLocaleString()}</span> pincodes · tap a pill to toggle ODA
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-[#71717A]">
+            <span className="font-mono text-[#F8F8F8]">{total.toLocaleString()}</span> pincodes
+          </span>
+          <button onClick={resetPincodes} disabled={resetting} className={BTN_SECONDARY}>
+            {resetting ? 'Resetting…' : 'Reset to defaults'}
+          </button>
+        </div>
       </div>
+
+      {/* Edit hint */}
+      <p className="text-xs text-[#71717A]">
+        Click an ODA pill to toggle YES/NO — search results are editable too. Changes save instantly (this session only).
+      </p>
 
       {q.isLoading && !q.data ? (
         <Skeleton height={320} style={{ borderRadius: 12 }} />
