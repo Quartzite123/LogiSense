@@ -95,28 +95,92 @@ def _auto_seed_demo_data() -> None:
         print(f"[startup] Insights generation failed (non-fatal): {e}")
 
 
+def _init_demo_db() -> None:
+    """Instant demo/cloud startup: drop the pre-built demo.db into place instead
+    of re-seeding from the 8 xlsx files (~2 min).
+
+    - DB already populated  -> skip (a Render persistent disk survives redeploys).
+    - fresh DB + demo/demo.db present -> copy it (instant, <1s).
+    - fresh DB + no demo.db          -> fall back to the file seeder.
+
+    demo/demo.db is a checkpointed snapshot of a fully seeded DB (reference
+    pincodes + 4017 synthetic shipments + cached Groq insights), so no further
+    seeding is needed after the copy.
+    """
+    import shutil
+    import sqlite3
+
+    from app.store.db import DB_PATH
+
+    demo_path = ROOT / "demo" / "demo.db"
+
+    if DB_PATH.exists():
+        try:
+            conn = sqlite3.connect(str(DB_PATH))
+            count = conn.execute("SELECT COUNT(*) FROM shipments_latest").fetchone()[0]
+            conn.close()
+        except Exception:
+            count = 0
+        if count > 0:
+            print(f"[startup] DB has {count} rows — skipping demo init")
+            return
+
+    if demo_path.exists():
+        print("[startup] Copying pre-built demo.db — instant startup")
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        # Drop stale WAL sidecars left by init_db()/seed on the empty DB so the
+        # freshly copied database isn't clobbered by a leftover write-ahead log.
+        for suffix in ("-wal", "-shm"):
+            side = Path(f"{DB_PATH}{suffix}")
+            if side.exists():
+                side.unlink()
+        shutil.copy(str(demo_path), str(DB_PATH))
+        print("[startup] Demo DB ready — 4017 rows, insights pre-cached")
+    else:
+        print("[startup] demo/demo.db not found — falling back to seeder")
+        # The file seeder ingests through the pipeline, which needs the reference
+        # pincode master present first.
+        try:
+            seed_all_if_empty()
+        except Exception as e:
+            print(f"[startup] reference seeding skipped/failed: {e}")
+        _auto_seed_demo_data()
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     # Startup: ensure schema exists, then seed reference data if the live
     # tables are empty (seed_all_if_empty is idempotent — see app/store/seed.py).
     init_db()
+    # Demo init first: on a fresh disk this copies the pre-built demo.db (which
+    # already contains the reference pincode master), so the expensive xlsx seed
+    # below short-circuits to a no-op — keeping cloud cold-starts near-instant.
     try:
-        seed_all_if_empty()
+        _init_demo_db()
+    except Exception as e:  # never block startup on optional demo init
+        print(f"[startup] demo init skipped/failed: {e}")
+    try:
+        seed_all_if_empty()  # backstop; no-op once demo.db (with pincodes) is in place
     except Exception as e:  # never block startup on optional reference seeding
         print(f"[startup] reference seeding skipped/failed: {e}")
-    try:
-        _auto_seed_demo_data()
-    except Exception as e:  # never block startup on optional demo seeding
-        print(f"[startup] demo auto-seed skipped/failed: {e}")
     yield
 
 
 app = FastAPI(title="LogiSense API", version="0.1.0", lifespan=lifespan)
 
-# CORS for the Vite dev server (dev also uses a /api proxy, so this is a backstop).
+# CORS: Vite dev server (dev also uses a /api proxy, so this is a backstop) plus
+# the production Vercel domain. Vercel preview deploys get hashed subdomains, so
+# they're matched with allow_origin_regex — CORSMiddleware.allow_origins does
+# exact matches only, so a glob string like "https://logisense-*.vercel.app"
+# would never match a real origin.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://logisense.vercel.app",
+    ],
+    allow_origin_regex=r"https://logisense-[a-z0-9-]+\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

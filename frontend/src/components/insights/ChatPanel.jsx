@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../../lib/useIsMobile.js'
+import { apiUrl } from '../../lib/api.js'
 
 // AI chat for the Insights page (INSIGHTS_SPEC §3.4). Self-contained: local
 // conversation state, posts the full history to /api/assistant/chat, renders
@@ -14,7 +15,7 @@ const SUGGESTIONS = [
 ]
 
 async function postChat(messages) {
-  const res = await fetch('/api/assistant/chat', {
+  const res = await fetch(apiUrl('/api/assistant/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages }),

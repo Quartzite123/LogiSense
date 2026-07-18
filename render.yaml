@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: logisense-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+    disk:
+      name: logisense-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
