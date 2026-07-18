@@ -10,11 +10,11 @@ import Donut from '../components/charts/Donut.jsx'
 import ChartPair from '../components/charts/ChartPair.jsx'
 import { fetchJSON, download } from '../lib/api.js'
 
-function Chip({ label, value, color }) {
+function Chip({ label, value, color, className = '' }) {
   return (
-    <div className="flex-1 rounded-xl border border-[#27272A] bg-[#0F0F11] p-4">
+    <div className={`rounded-xl border border-[#27272A] bg-[#0F0F11] ${className}`} style={{ padding: '18px 24px' }}>
       <div className="text-[11px] font-semibold uppercase tracking-wide text-[#71717A]">{label}</div>
-      <div className="mt-1 font-mono text-2xl font-bold" style={{ color }}>{value}</div>
+      <div className="mt-1 font-mono font-bold leading-none" style={{ color, fontSize: 32 }}>{value}</div>
     </div>
   )
 }
@@ -114,21 +114,17 @@ export default function Transit() {
         <EmptyState message="No in-flight orders right now." />
       ) : (
         <>
-          {/* Risk chips + RTO badge */}
-          <div className="flex flex-wrap items-stretch gap-4">
-            {summary.isLoading || !s ? (
-              <Skeleton height={80} />
-            ) : (
-              <>
-                <Chip label="At Risk" value={s.at_risk.toLocaleString()} color="#F87171" />
-                <Chip label="Due Today" value={s.due_today.toLocaleString()} color="#FFD60A" />
-                <Chip label="On Track" value={s.on_track.toLocaleString()} color="#4ADE80" />
-                <div className="flex items-center gap-2 rounded-xl border border-[#27272A] bg-[#15151A] px-4 text-xs text-[#94A3B8]">
-                  RTO <span className="font-mono text-base font-semibold text-[#F8F8F8]">{s.rto_count}</span>
-                </div>
-              </>
-            )}
-          </div>
+          {/* Risk summary — four equal cards (4-up on desktop, 2-up on mobile) */}
+          {summary.isLoading || !s ? (
+            <Skeleton height={92} style={{ borderRadius: 12 }} />
+          ) : (
+            <div className="flex flex-wrap gap-4">
+              <Chip className="grow basis-[calc(50%_-_0.5rem)] md:basis-[calc(25%_-_0.75rem)]" label="At Risk" value={s.at_risk.toLocaleString()} color="#F87171" />
+              <Chip className="grow basis-[calc(50%_-_0.5rem)] md:basis-[calc(25%_-_0.75rem)]" label="Due Today" value={s.due_today.toLocaleString()} color="#FBBF24" />
+              <Chip className="grow basis-[calc(50%_-_0.5rem)] md:basis-[calc(25%_-_0.75rem)]" label="On Track" value={s.on_track.toLocaleString()} color="#4ADE80" />
+              <Chip className="grow basis-[calc(50%_-_0.5rem)] md:basis-[calc(25%_-_0.75rem)]" label="RTO" value={s.rto_count.toLocaleString()} color="#94A3B8" />
+            </div>
+          )}
 
           {/* In-flight donut + selectable chart-pair */}
           {ordersQ.isLoading ? (
