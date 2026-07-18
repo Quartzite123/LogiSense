@@ -13,6 +13,7 @@ from __future__ import annotations
 import sqlite3
 import sys
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
 from .schema import (
@@ -84,9 +85,36 @@ def sync_to_idb() -> None:
 # connection management
 # ---------------------------------------------------------------------------
 
+# Per-request DB override. The API session middleware sets this ContextVar to a
+# session-specific DB path so that every get_conn()/cursor() call in that request's
+# async context (routers, shared query helpers, AND the pipeline) targets the
+# visitor's isolated copy of demo.db instead of the shared DB_PATH. Unset (None) —
+# e.g. startup seeding, tests, CLI — falls back to the global DB_PATH.
+_session_db_path: ContextVar[str | None] = ContextVar("logisense_session_db", default=None)
+
+
+def set_session_db_path(path: str | None):
+    """Point this async context's DB access at ``path``. Returns a reset token."""
+    return _session_db_path.set(path)
+
+
+def reset_session_db_path(token) -> None:
+    """Restore the previous DB target (pair with set_session_db_path)."""
+    _session_db_path.reset(token)
+
+
+def active_db_path() -> str:
+    """The DB file get_conn() will open: the session override if set, else global."""
+    return _session_db_path.get() or str(DB_PATH)
+
+
 def get_conn() -> sqlite3.Connection:
-    """Return a SQLite connection with sensible defaults."""
-    conn = sqlite3.connect(str(DB_PATH), detect_types=sqlite3.PARSE_DECLTYPES)
+    """Return a SQLite connection with sensible defaults.
+
+    Targets the per-request session DB when one is set (see set_session_db_path),
+    otherwise the global DB_PATH.
+    """
+    conn = sqlite3.connect(active_db_path(), detect_types=sqlite3.PARSE_DECLTYPES)
     conn.row_factory = sqlite3.Row
     # WAL's -wal/-shm sidecar files don't sync cleanly through IDBFS, so use the
     # single-file DELETE journal under Pyodide; keep WAL everywhere else.
@@ -94,6 +122,9 @@ def get_conn() -> sqlite3.Connection:
         conn.execute("PRAGMA journal_mode=DELETE;")
     else:
         conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA cache_size=-64000;")
+        conn.execute("PRAGMA temp_store=MEMORY;")
     conn.execute("PRAGMA busy_timeout=5000;")
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

@@ -10,7 +10,9 @@ const BASE = import.meta.env.VITE_API_URL || ''
 export const apiUrl = (path) => `${BASE}${path}`
 
 export async function fetchJSON(url) {
-  const res = await fetch(apiUrl(url))
+  // credentials: 'include' so the cross-origin logi_session cookie (Vercel → Render)
+  // is sent and refreshed — this is what keeps each visitor on their own DB.
+  const res = await fetch(apiUrl(url), { credentials: 'include' })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail || `${url} → HTTP ${res.status}`)

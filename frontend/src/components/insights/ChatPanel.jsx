@@ -18,6 +18,7 @@ async function postChat(messages) {
   const res = await fetch(apiUrl('/api/assistant/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ messages }),
   })
   if (!res.ok) {

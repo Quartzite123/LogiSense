@@ -1,10 +1,10 @@
-"""Generate a small 45-row Delhivery-format .xlsx a visitor can upload on the
-live demo to see the What-Changed digest fire.
+"""Generate a realistic ~120-row Delhivery-format .xlsx a visitor can upload on
+the live demo to see the What-Changed digest + all sections react.
 
-All rows are Delivered (instant processing), dated Mar–Apr 2026 — i.e. *after*
-the bundled demo.db data ends (Feb 2026) — so uploading it produces a genuine
-"next upload" comparison. Destination pincodes are REAL, pulled from
-pincode_master_live (no invented pincodes). Origin is always Aurangabad (West).
+Dated Feb–Apr 2026 (overlapping the tail of the bundled demo.db and extending
+past it), with a realistic status mix (mostly Delivered, some in-flight, a few
+RTO) and ~20% ODA orders to REAL pincodes from pincode_master_live. Origin is
+always Aurangabad (West).
 
 Output: tools/demo_upload.xlsx
 """
@@ -42,16 +42,21 @@ MATRIX = {"West": 4, "South": 6, "North": 6, "East": 7, "North-East": 10}
 ZONE_KEYS = ["West", "South", "North", "East", "North-East"]
 ZONE_WEIGHTS = [35, 25, 20, 15, 5]
 
-# company -> (order count, target E+OT fraction). Totals 45 orders.
+# company -> (order count, target E+OT fraction among its delivered orders).
 COMPANIES = {
-    "STELLARTECH SYSTEMS": (15, 0.90),   # improvement from the demo baseline
-    "MERIDIAN ELECTRICALS": (10, 0.85),  # stable
-    "PRISM INDUSTRIES": (8, 0.40),       # still struggling
-    "CREST AUTOMATION": (7, 0.95),       # excellent
-    "LYNX SWITCHGEAR": (5, 0.88),        # growing
-}
+    "STELLARTECH SYSTEMS": (40, 0.88),
+    "MERIDIAN ELECTRICALS": (28, 0.82),
+    "PRISM INDUSTRIES": (22, 0.38),   # still struggling
+    "CREST AUTOMATION": (18, 0.94),
+    "LYNX SWITCHGEAR": (12, 0.86),
+}  # total = 120
 
-WINDOW = (date(2026, 3, 1), date(2026, 4, 30))
+# Overall status mix (~75% Delivered / 12% In Transit / 8% Pending / 5% RTO).
+STATUSES = ["Delivered", "In Transit", "Pending", "RTO"]
+STATUS_WEIGHTS = [75, 12, 8, 5]
+
+WINDOW = (date(2026, 2, 1), date(2026, 4, 30))
+ODA_SHARE = 0.20
 
 
 def load_pools():
@@ -80,7 +85,7 @@ def rand_date() -> date:
 
 def pick_destination():
     zone = random.choices(ZONE_KEYS, weights=ZONE_WEIGHTS)[0]
-    is_oda = random.random() < 0.22
+    is_oda = random.random() < ODA_SHARE
     pool = (ODA_POOL if is_oda else NORMAL_POOL)[zone]
     if not pool:
         is_oda, pool = False, NORMAL_POOL[zone] or NORMAL_POOL["West"]
@@ -96,12 +101,11 @@ def actual_tat(sla: str, expected: int) -> int:
     return max(1, expected - random.randint(1, max(1, min(3, expected - 1))))
 
 
-def build_row(lrn: int, company: str, sla: str) -> dict:
+def build_row(lrn: int, company: str, status: str, sla: str | None) -> dict:
     zone, is_oda, pin, state = pick_destination()
     expected = MATRIX[zone] + (1 if is_oda else 0)
     manifest = rand_date()
     pickup = manifest + timedelta(days=random.randint(0, 1))
-    delivered = manifest + timedelta(days=actual_tat(sla, expected))
 
     row = {c: None for c in COLUMNS}
     row.update({
@@ -116,10 +120,22 @@ def build_row(lrn: int, company: str, sla: str) -> dict:
         "Weight": round(random.uniform(0.5, 25), 2), "Attempt Count": 1.0,
         "Dispatch Count": random.randint(1, 3), "Manifest Date": manifest,
         "Pickup Date": pickup, "Expected Date": manifest + timedelta(days=expected),
-        "Invoice Zone": zone, "Current Status": "Delivered", "Status Type": "Delivered",
-        "Delivered Date": delivered, "Last Scan Date": delivered,
-        "Remarks": "Delivered to Consignee",
+        "Invoice Zone": zone, "Current Status": status, "Status Type": status,
     })
+
+    if status == "Delivered":
+        delivered = manifest + timedelta(days=actual_tat(sla, expected))
+        row["Delivered Date"] = delivered
+        row["Last Scan Date"] = delivered
+        row["Remarks"] = "Delivered to Consignee"
+    elif status == "RTO":
+        row["Remarks"] = "RTO - Return to Origin"
+        row["Last Scan Date"] = pickup + timedelta(days=random.randint(2, 6))
+    elif status == "In Transit":
+        row["Remarks"] = "In Transit to next hub"
+        row["Last Scan Date"] = pickup + timedelta(days=1)
+    elif status == "Pending":
+        row["Remarks"] = "Undelivered - Consignee unavailable"
     return row
 
 
@@ -127,13 +143,16 @@ def main() -> None:
     rows: list[dict] = []
     lrn = 900_000_001
     for company, (n, eot) in COMPANIES.items():
-        n_late = round(n * (1 - eot))
-        for i in range(n):
-            if i < n_late:
-                sla = "Late"
+        for _ in range(n):
+            status = random.choices(STATUSES, weights=STATUS_WEIGHTS)[0]
+            if status == "Delivered":
+                if random.random() < (1 - eot):
+                    sla = "Late"
+                else:
+                    sla = "Early" if random.random() < 0.70 else "On Time"
             else:
-                sla = "Early" if random.random() < 0.70 else "On Time"
-            rows.append(build_row(lrn, company, sla))
+                sla = None
+            rows.append(build_row(lrn, company, status, sla))
             lrn += 1
 
     random.shuffle(rows)
@@ -142,10 +161,14 @@ def main() -> None:
 
     print(f"Sourced pincodes from: {DB}")
     print(f"Wrote {OUT}  ({len(df)} rows, {len(COLUMNS)} columns)")
-    print("Per-company order counts:")
-    for company, (n, eot) in COMPANIES.items():
-        print(f"  {company:22s} {n:2d} orders  (target E+OT {int(eot * 100)}%)")
-    print("Columns:", list(df.columns))
+    print("Status mix:", df["Current Status"].value_counts().to_dict())
+    print("Per-company counts:", df["Order id"].value_counts().to_dict())
+    oda_ct = sum(
+        1 for _, r in df.iterrows()
+        if (r["Invoice Zone"], int(r["Pin code"]))
+        and any(int(r["Pin code"]) == p for p, _ in ODA_POOL.get(r["Invoice Zone"], []))
+    )
+    print(f"ODA orders (approx): {oda_ct} / {len(df)}")
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ export default function UploadModal({ open, onClose, onResult }) {
       // selected file's batch; the warning makes the replace semantics clear.
       const fd = new FormData()
       fd.append('file', files[0])
-      const res = await fetch(apiUrl('/api/upload'), { method: 'POST', body: fd })
+      const res = await fetch(apiUrl('/api/upload'), { method: 'POST', credentials: 'include', body: fd })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         throw new Error(b.detail || `Upload failed (HTTP ${res.status})`)

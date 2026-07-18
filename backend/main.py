@@ -13,6 +13,7 @@ import glob
 import os
 import sys
 from contextlib import asynccontextmanager
+from http.cookies import SimpleCookie
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -31,10 +32,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.store.db import get_conn, init_db
+from app.store.db import (
+    get_conn,
+    init_db,
+    reset_session_db_path,
+    set_session_db_path,
+)
 from app.store.seed import seed_all_if_empty
 from app.store.queries import count_latest
 
+from backend.session import cleanup_old_sessions, get_or_create_session
 from backend.routers import (
     upload, landing, transit, tat, aggregate, aggregate_transit, customize, exports, edit,
 )
@@ -163,10 +170,92 @@ async def lifespan(_app: FastAPI):
         seed_all_if_empty()  # backstop; no-op once demo.db (with pincodes) is in place
     except Exception as e:  # never block startup on optional reference seeding
         print(f"[startup] reference seeding skipped/failed: {e}")
+    try:
+        removed = cleanup_old_sessions(24)  # sweep visitor DBs idle > 24h
+        if removed:
+            print(f"[startup] Cleaned up {removed} expired session DB(s)")
+    except Exception as e:
+        print(f"[startup] session cleanup skipped/failed: {e}")
     yield
 
 
+def _build_session_cookie(sid: str, secure: bool) -> str:
+    """Serialize the `logi_session` cookie.
+
+    Cross-site (Vercel frontend → Render API) requires SameSite=None; Secure so the
+    browser sends it on XHR to another origin. On plain-http localhost a Secure
+    cookie would be dropped, so fall back to Lax there (same-origin via the Vite
+    proxy, which sends Lax cookies fine). Not HttpOnly — JS may read it.
+    """
+    jar = SimpleCookie()
+    jar["logi_session"] = sid
+    m = jar["logi_session"]
+    m["path"] = "/"
+    m["max-age"] = 86400  # 24 hours
+    if secure:
+        m["samesite"] = "None"
+        m["secure"] = True
+    else:
+        m["samesite"] = "Lax"
+    return jar.output(header="").strip()
+
+
+class SessionMiddleware:
+    """Per-session DB isolation (see backend/session.py).
+
+    Reads the `logi_session` cookie, ensures a session DB exists (copied from
+    demo.db on first hit), and points app.store.db.get_conn() at it for the whole
+    request via a ContextVar — so routers, the shared query helpers, and the
+    ingest pipeline all transparently read/write the visitor's own copy.
+
+    Implemented as raw ASGI (not BaseHTTPMiddleware) so the ContextVar set here is
+    reliably visible to downstream DB calls, including sync endpoints that run in
+    the threadpool (anyio copies the context into the worker thread).
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope.get("method") == "OPTIONS":
+            # Non-HTTP (lifespan/websocket) and CORS preflight need no session DB.
+            await self.app(scope, receive, send)
+            return
+
+        incoming = None
+        for key, value in scope.get("headers", []):
+            if key == b"cookie":
+                jar = SimpleCookie()
+                try:
+                    jar.load(value.decode("latin-1"))
+                    if "logi_session" in jar:
+                        incoming = jar["logi_session"].value
+                except Exception:
+                    incoming = None
+                break
+
+        sid, db_path = get_or_create_session(incoming)
+        set_cookie = _build_session_cookie(sid, secure=scope.get("scheme") == "https")
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"set-cookie", set_cookie.encode("latin-1")))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        token = set_session_db_path(db_path)
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            reset_session_db_path(token)
+
+
 app = FastAPI(title="LogiSense API", version="0.1.0", lifespan=lifespan)
+
+# Session isolation runs INSIDE CORS (added first → CORS ends up outermost), so
+# CORS handles preflight before any session DB work happens.
+app.add_middleware(SessionMiddleware)
 
 # CORS: Vite dev server (dev also uses a /api proxy, so this is a backstop) plus
 # the production Vercel domain. Vercel preview deploys get hashed subdomains, so
