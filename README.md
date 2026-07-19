@@ -15,6 +15,7 @@
 ## Live Demo
 
 - **Dashboard:** https://logi-sense-one.vercel.app
+- **Login:** demo@logisense.app / demo1234
 - **API docs:** https://logisense-1dvc.onrender.com/docs
 - Demo data: 4,017 shipments across 22 companies (Jul 2025 – Feb 2026)
 - Upload `tools/demo_upload.xlsx` to see the What-Changed digest in action
@@ -819,13 +820,13 @@ python tools/generate_sample_data.py
 
 | Item | Priority | Notes |
 |---|---|---|
-| **AI Insights tab** | High | Client classification, problem lanes, root-cause decomposition, What-Changed digest, AI-narrated summaries — Phase B |
-| **Vercel + Render deployment** | High | Frontend on Vercel, FastAPI on Render, seeded demo DB — Phase C |
-| **Electron desktop .exe** | Medium | Wrap FastAPI + React build into a native Windows app — Phase D |
-| Groq AI assistant (Phase 3) | Medium | Complete the assistant.py router and wire it to the frontend |
-| Mobile responsive Insights tab | Medium | Insights tab designed mobile-first from day one |
-| Matrix editing (write endpoint) | Low | Edit section is read-only; "Edit matrix" shows a coming-soon toast |
 | Streaming AI responses | Nice-to-have | Token-by-token typing effect via SSE |
+| Real server-side auth | Nice-to-have | The live demo uses a client-side gate (localStorage), not a security boundary — a production build would add real auth + API-level protection |
+
+> Shipped since the original roadmap: AI Insights tab (Phase B), Vercel + Render
+> deployment with a pre-built demo DB (Phase C), the Groq AI assistant, mobile-responsive
+> layout, and editable reference data (matrix + pincode ODA, reset, custom upload).
+> The Electron desktop `.exe` (Phase D) was dropped in favour of the hosted web demo.
 
 ---
 
@@ -833,14 +834,17 @@ python tools/generate_sample_data.py
 
 ```
 v1  Streamlit prototype — original internal build
-v2  FastAPI + React migration — current architecture
+v2  FastAPI + React migration
      Phase 1: scaffold + Landing (12 KPI cards)
      Phase 2: all sections + shared components + exports
      UI parity pass: charts, tables, filters, modals
      Perf pass: caching, indexes, lazy loading
-     Phase 3: AI Assistant (Groq / Llama 3.3 70B) — in progress
-v3  (next) AI Insights tab + Vercel/Render deployment
-v4  (next) Electron .exe
+     Phase 3: AI Assistant (Groq / Llama 3.3 70B)
+v3  (CURRENT) AI Insights + deployment — shipped
+     8 SQL detectors + a single Groq narration, cached per snapshot
+     What-Changed digest + inline root-cause panels, mobile responsive
+     Vercel (frontend) + Render (API) with a pre-built demo DB
+     Per-session DB isolation, demo login gate, editable reference data
 ```
 
 **Why the migration happened:** The prototype used a Python-only framework that
