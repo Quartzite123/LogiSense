@@ -75,7 +75,7 @@ export default function UploadModal({ open, onClose, onResult }) {
         {busy ? (
           // --- Processing: airplane Lottie ---
           <div style={{ textAlign: 'center', padding: '32px' }}>
-            <Lottie animationData={airplaneAnimation} loop style={{ width: 160, height: 160, margin: '0 auto' }} />
+            <Lottie animationData={airplaneAnimation} loop style={{ width: 240, height: 240, margin: '0 auto' }} />
             <p style={{ color: '#FFD60A', fontSize: '16px', fontWeight: 600, marginTop: '16px' }}>
               Processing your file...
             </p>
