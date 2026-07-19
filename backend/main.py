@@ -200,6 +200,12 @@ def _build_session_cookie(sid: str, secure: bool) -> str:
     return jar.output(header="").strip()
 
 
+# Paths that must never trigger session creation. Uptime monitors ping health
+# without a cookie, and minting a ~6MB session DB per ping would fill the disk on
+# Render. Docs/openapi are also fine without a session.
+EXEMPT_PATHS = ("/api/health", "/docs", "/openapi.json")
+
+
 class SessionMiddleware:
     """Per-session DB isolation (see backend/session.py).
 
@@ -217,8 +223,13 @@ class SessionMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] != "http" or scope.get("method") == "OPTIONS":
-            # Non-HTTP (lifespan/websocket) and CORS preflight need no session DB.
+        if (
+            scope["type"] != "http"
+            or scope.get("method") == "OPTIONS"
+            or scope.get("path", "").startswith(EXEMPT_PATHS)
+        ):
+            # Non-HTTP (lifespan/websocket), CORS preflight, and exempt paths
+            # (health/docs) pass straight through — no session, no cookie.
             await self.app(scope, receive, send)
             return
 
@@ -290,8 +301,11 @@ app.include_router(assistant_router)  # already prefixed /api/assistant
 
 
 @app.get("/api/health")
-def health() -> dict:
-    return {"status": "ok", "rows_in_latest": count_latest()}
+@app.head("/api/health")
+async def health() -> dict:
+    # Static — no DB, no session, no auth. Safe for uptime monitors to hit often.
+    # Supports HEAD as well as GET (UptimeRobot may send HEAD).
+    return {"status": "ok", "service": "logisense-api"}
 
 
 # --- Production: serve the built React app if it exists ---------------------
