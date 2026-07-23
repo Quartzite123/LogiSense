@@ -7,7 +7,7 @@ export default function FilterPanel({ children, defaultOpen = true, right = null
     <div className="rounded-xl border border-[#27272A] bg-[#0F0F11]" style={{ padding: '20px 24px' }}>
       <div className="flex items-center justify-between">
         <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 text-sm font-semibold text-[#F8F8F8]">
-          Filters <span className="text-[#71717A]">{open ? '▲' : '▼'}</span>
+          Filters <span className="text-[#8A8A93]">{open ? '▲' : '▼'}</span>
         </button>
         {right}
       </div>

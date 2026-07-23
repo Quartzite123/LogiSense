@@ -5,7 +5,7 @@ const pct = (v) => (v == null ? '—' : `${Math.round(v * 100)}%`)
 function Row({ label, children }) {
   return (
     <div className="flex gap-3 text-[13px] leading-relaxed">
-      <span className="w-[112px] shrink-0 text-[#71717A]">{label}</span>
+      <span className="w-[112px] shrink-0 text-[#8A8A93]">{label}</span>
       <span className="text-[#D4D4D8]">{children}</span>
     </div>
   )
@@ -18,8 +18,8 @@ export default function RootCausePanel({ loading, error, data, overallOdaPct }) 
   if (loading) {
     return (
       <div className={wrap} style={style}>
-        <div className="flex items-center gap-2 text-[13px] text-[#71717A]">
-          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#3F3F46] border-t-[#FFD60A]" />
+        <div className="flex items-center gap-2 text-[13px] text-[#8A8A93]">
+          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#3F3F46] border-t-[#B18AFF]" />
           Analysing…
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function RootCausePanel({ loading, error, data, overallOdaPct }) 
         <Row label="ODA exposure">
           {pct(oda_share)} of orders
           {overallOdaPct != null && (
-            <span className="text-[#71717A]"> (vs {Math.round(overallOdaPct)}% overall)</span>
+            <span className="text-[#8A8A93]"> (vs {Math.round(overallOdaPct)}% overall)</span>
           )}
         </Row>
         <Row label="Dominant zone">{dominant_zone || '—'}</Row>

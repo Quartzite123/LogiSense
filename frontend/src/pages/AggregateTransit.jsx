@@ -38,7 +38,7 @@ function RiskSummaryTable({ rows }) {
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="text-left text-[11px] uppercase tracking-wide text-[#71717A]">
+        <tr className="text-left text-[11px] uppercase tracking-wide text-[#8A8A93]">
           <th className="px-3 py-2">Risk Status</th>
           <th className="px-3 py-2 text-right">Orders</th>
           <th className="px-3 py-2 text-right">% of Total</th>
@@ -65,7 +65,7 @@ function RiskSummaryTable({ rows }) {
 function DaysOverdueTable({ rows }) {
   if (!rows.length) {
     return (
-      <div className="flex h-full min-h-[140px] items-center justify-center rounded-lg border border-dashed border-[#27272A] text-sm text-[#71717A]">
+      <div className="flex h-full min-h-[140px] items-center justify-center rounded-lg border border-dashed border-[#27272A] text-sm text-[#8A8A93]">
         No overdue orders
       </div>
     )
@@ -73,7 +73,7 @@ function DaysOverdueTable({ rows }) {
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="text-left text-[11px] uppercase tracking-wide text-[#71717A]">
+        <tr className="text-left text-[11px] uppercase tracking-wide text-[#8A8A93]">
           <th className="px-3 py-2">Days Overdue</th>
           <th className="px-3 py-2 text-right">Orders</th>
         </tr>
@@ -94,8 +94,8 @@ function ErrorBox({ query }) {
   return (
     <div className="rounded-lg border border-[#F87171]/50 bg-[#F87171]/10 p-5 text-sm">
       <div className="font-medium text-[#F87171]">Couldn’t load data.</div>
-      <div className="mt-1 text-[#71717A]">{String(query.error?.message)} — is the backend running on :8000?</div>
-      <button onClick={() => query.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#FFD60A]">
+      <div className="mt-1 text-[#8A8A93]">{String(query.error?.message)} — is the backend running on :8000?</div>
+      <button onClick={() => query.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#B18AFF]">
         Retry
       </button>
     </div>

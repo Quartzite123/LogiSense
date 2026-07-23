@@ -25,7 +25,7 @@ export default function StatusPill({ status }) {
 
   const pair = resolve(status)
   // Unmapped (e.g. "On Track") → plain muted text, no pill.
-  if (!pair) return <span style={{ color: '#71717A' }}>{status}</span>
+  if (!pair) return <span style={{ color: '#8A8A93' }}>{status}</span>
 
   const [color, bg] = pair
   return (

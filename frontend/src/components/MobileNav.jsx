@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useIsMobile } from '../lib/useIsMobile.js'
+import { GridIcon, MenuIcon, SparkIcon, TruckIcon } from './icons.jsx'
 
 // Bottom navigation bar shown only at ≤768px (the desktop sidebar is hidden there).
 // 3 primary destinations + a Menu that slides up a drawer with the rest.
 const PRIMARY = [
-  { to: '/', label: 'Landing', icon: '🏠', end: true },
-  { to: '/insights', label: 'Insights', icon: '✦' },
-  { to: '/transit', label: 'Transit', icon: '📦' },
+  { to: '/', label: 'Landing', Icon: GridIcon, end: true },
+  { to: '/insights', label: 'Insights', Icon: SparkIcon },
+  { to: '/transit', label: 'Transit', Icon: TruckIcon },
 ]
 const DRAWER = [
   { to: '/tat', label: 'TAT Analysis' },
@@ -16,18 +17,18 @@ const DRAWER = [
   { to: '/customize', label: 'Customize' },
   { to: '/edit', label: 'Edit' },
 ]
-const ACTIVE = '#FFD60A'
-const IDLE = '#71717A'
+const ACTIVE = '#B18AFF'
+const IDLE = '#8A8A93'
 
-function BarItem({ to, label, icon, end }) {
+function BarItem({ to, label, Icon, end }) {
   return (
     <NavLink
       to={to}
       end={end}
-      className="flex flex-1 flex-col items-center justify-center gap-0.5"
+      className="flex flex-1 flex-col items-center justify-center gap-1"
       style={({ isActive }) => ({ color: isActive ? ACTIVE : IDLE })}
     >
-      <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
+      <Icon width="20" height="20" />
       <span style={{ fontSize: 10 }}>{label}</span>
     </NavLink>
   )
@@ -54,11 +55,11 @@ export default function MobileNav() {
         ))}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="flex flex-1 flex-col items-center justify-center gap-0.5"
+          className="flex flex-1 flex-col items-center justify-center gap-1"
           style={{ color: menuActive ? ACTIVE : IDLE }}
           aria-label="More sections"
         >
-          <span style={{ fontSize: 22, lineHeight: 1 }}>☰</span>
+          <MenuIcon width="20" height="20" />
           <span style={{ fontSize: 10 }}>Menu</span>
         </button>
       </nav>
@@ -75,7 +76,7 @@ export default function MobileNav() {
             }}
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#3F3F46]" />
-            <div className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#71717A]">
+            <div className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8A8A93]">
               More sections
             </div>
             <div className="flex flex-col gap-1">

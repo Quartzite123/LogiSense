@@ -13,7 +13,7 @@ import { fetchJSON, download } from '../lib/api.js'
 function Chip({ label, value, color, className = '' }) {
   return (
     <div className={`rounded-xl border border-[#27272A] bg-[#0F0F11] ${className}`} style={{ padding: '18px 24px' }}>
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#71717A]">{label}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#8A8A93]">{label}</div>
       <div className="mt-1 font-mono font-bold leading-none" style={{ color, fontSize: 32 }}>{value}</div>
     </div>
   )

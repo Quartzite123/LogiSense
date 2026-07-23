@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import Skeleton from '../Skeleton.jsx'
 import { fetchJSON } from '../../lib/api.js'
 import { useIsMobile } from '../../lib/useIsMobile.js'
+import { BarsIcon } from '../icons.jsx'
 
 const TEN_MIN = 10 * 60 * 1000
 
@@ -17,11 +18,11 @@ function getIndicator(bullet) {
   const lead = bullet.trim().charAt(0)
   if (lead === '▲') return { symbol: '▲', color: '#4ADE80' }
   if (lead === '▼') return { symbol: '▼', color: '#F87171' }
-  if (lead === '●') return { symbol: '●', color: '#71717A' }
+  if (lead === '●') return { symbol: '●', color: '#8A8A93' }
   const lower = bullet.toLowerCase()
   if (POSITIVE.some((w) => lower.includes(w))) return { symbol: '▲', color: '#4ADE80' }
   if (NEGATIVE.some((w) => lower.includes(w))) return { symbol: '▼', color: '#F87171' }
-  return { symbol: '●', color: '#71717A' }
+  return { symbol: '●', color: '#8A8A93' }
 }
 
 const stripLead = (b) => b.replace(/^\s*[▲▼●]\s*/, '')
@@ -70,7 +71,7 @@ export default function DigestCard() {
     return (
       <div className={cardCls} style={style}>
         <div className="text-sm text-[#F87171]">Couldn’t load the digest.</div>
-        <button onClick={() => q.refetch()} className="mt-2 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1 text-xs text-[#F8F8F8] hover:border-[#FFD60A]">
+        <button onClick={() => q.refetch()} className="mt-2 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1 text-xs text-[#F8F8F8] hover:border-[#B18AFF]">
           Retry
         </button>
       </div>
@@ -85,10 +86,10 @@ export default function DigestCard() {
     return (
       <div className={cardCls} style={style}>
         <div className="flex items-center gap-2">
-          <span className="text-base">📊</span>
+          <BarsIcon width="16" height="16" className="shrink-0 text-[#B18AFF]" />
           <h2 className="text-[15px] font-semibold text-[#F8F8F8]">First upload — baseline established</h2>
         </div>
-        <p className="mt-1.5 text-sm text-[#71717A]">
+        <p className="mt-1.5 text-sm text-[#8A8A93]">
           {data.message || 'Upload another file and I’ll show you what changed.'}
         </p>
       </div>
@@ -105,12 +106,12 @@ export default function DigestCard() {
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="text-base">📊</span>
+          <BarsIcon width="16" height="16" className="shrink-0 text-[#B18AFF]" />
           <h2 className="text-[15px] font-semibold text-[#F8F8F8]">
             What Changed{n ? ` — Upload #${n} vs Upload #${n - 1}` : ''}
           </h2>
         </div>
-        <span className={`text-xs text-[#71717A] transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+        <span className={`text-xs text-[#8A8A93] transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
       </button>
 
       {open && (
@@ -127,7 +128,7 @@ export default function DigestCard() {
             })}
           </ul>
           {prevDate && (
-            <p className="mt-4 text-xs text-[#71717A]">Compared to data from {prevDate}</p>
+            <p className="mt-4 text-xs text-[#8A8A93]">Compared to data from {prevDate}</p>
           )}
         </>
       )}

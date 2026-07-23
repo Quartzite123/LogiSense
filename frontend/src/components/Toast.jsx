@@ -24,7 +24,7 @@ export function ToastContainer({ toasts, onDismiss }) {
             <span>{t.message}</span>
             <button
               onClick={() => onDismiss(t.id)}
-              className="text-[#71717A] transition-colors hover:text-[#F8F8F8]"
+              className="text-[#8A8A93] transition-colors hover:text-[#F8F8F8]"
               aria-label="Dismiss"
             >
               ×

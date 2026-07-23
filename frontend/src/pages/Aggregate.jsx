@@ -114,7 +114,7 @@ export default function Aggregate() {
             {monthly.isLoading || !monthly.data ? (
               <Skeleton height={300} />
             ) : monthly.data.length === 0 ? (
-              <div className="flex h-[300px] items-center justify-center text-sm text-[#71717A]">No monthly data</div>
+              <div className="flex h-[300px] items-center justify-center text-sm text-[#8A8A93]">No monthly data</div>
             ) : (
               <StackedBar
                 data={monthly.data}

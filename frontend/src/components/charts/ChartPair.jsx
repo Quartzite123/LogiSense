@@ -16,7 +16,7 @@ import GroupedBar from './GroupedBar.jsx'
 import { axisProps, chartTheme, legendProps, tooltipProps, truncateLabel } from './chartTheme.js'
 
 const CHART_TYPES = ['Bar', 'Line', 'Pie']
-const PIE_COLORS = ['#FFD60A', '#60A5FA', '#4ADE80', '#F87171', '#A78BFA', '#94A3B8', '#FBBF24']
+const PIE_COLORS = ['#B18AFF', '#60A5FA', '#4ADE80', '#F87171', '#22D3EE', '#94A3B8', '#FBBF24']
 
 // payload: { data: [{ [xKey], ...metrics }], bars: [{ key, name?, color }], xKey, yUnit }
 function BottomChart({ chartType, payload, height }) {
@@ -24,7 +24,7 @@ function BottomChart({ chartType, payload, height }) {
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center text-sm text-[#71717A]" style={{ height }}>
+      <div className="flex items-center justify-center text-sm text-[#8A8A93]" style={{ height }}>
         No data for this dimension
       </div>
     )
@@ -87,7 +87,7 @@ export default function ChartPair({ topChart, seriesFor, dimensionOptions = [], 
         <button
           onClick={() => setExpand(true)}
           title="Expand"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#71717A] hover:bg-[#1A1A1F] hover:text-[#F8F8F8]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#8A8A93] hover:bg-[#1A1A1F] hover:text-[#F8F8F8]"
         >
           ⛶
         </button>
@@ -98,7 +98,7 @@ export default function ChartPair({ topChart, seriesFor, dimensionOptions = [], 
       <div className="my-4 h-px bg-[#1F1F23]" />
 
       <div className="mb-3 flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 text-xs text-[#71717A]">
+        <label className="flex items-center gap-2 text-xs text-[#8A8A93]">
           Chart type
           <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
             {CHART_TYPES.map((t) => (
@@ -106,7 +106,7 @@ export default function ChartPair({ topChart, seriesFor, dimensionOptions = [], 
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-xs text-[#71717A]">
+        <label className="flex items-center gap-2 text-xs text-[#8A8A93]">
           Dimension
           <select value={dim} onChange={(e) => setDim(e.target.value)} className={selectClass}>
             {dimensionOptions.map((d) => (
@@ -127,7 +127,7 @@ export default function ChartPair({ topChart, seriesFor, dimensionOptions = [], 
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[#F8F8F8]">{title} — {dim}</h3>
-              <button onClick={() => setExpand(false)} className="text-[#71717A] hover:text-[#F8F8F8]" aria-label="Close">×</button>
+              <button onClick={() => setExpand(false)} className="text-[#8A8A93] hover:text-[#F8F8F8]" aria-label="Close">×</button>
             </div>
             <div className="flex-1">
               <BottomChart chartType={type} payload={payload} height="100%" />

@@ -21,18 +21,18 @@ export default function ColumnPicker({
     <div className="rounded-xl border border-[#27272A] bg-[#0F0F11] px-5 py-4">
       <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between">
         <span className="text-sm font-semibold text-[#F8F8F8]">Columns &amp; Sort</span>
-        <span className="text-[#71717A]">{open ? '▲' : '▼'}</span>
+        <span className="text-[#8A8A93]">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
         <div className="mt-3">
-          <div className="text-xs text-[#71717A]">Click × to hide · use the dropdown to show</div>
+          <div className="text-xs text-[#8A8A93]">Click × to hide · use the dropdown to show</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {visibleColumns.map((k) => (
               <span
                 key={k}
                 className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs"
-                style={{ background: 'rgba(255,214,10,0.12)', color: '#FFD60A' }}
+                style={{ background: 'rgba(177, 138, 255,0.12)', color: '#B18AFF' }}
               >
                 {labelOf(k)}
                 <button onClick={() => onChange(visibleColumns.filter((x) => x !== k))} className="hover:text-white">
@@ -78,7 +78,7 @@ export default function ColumnPicker({
           {onSortBy && (
             <div className="mt-4 flex flex-wrap items-end gap-4">
               <div>
-                <div className="mb-1 text-xs text-[#71717A]">Sort By</div>
+                <div className="mb-1 text-xs text-[#8A8A93]">Sort By</div>
                 <select
                   value={sortBy || ''}
                   onChange={(e) => onSortBy(e.target.value || null)}
@@ -93,7 +93,7 @@ export default function ColumnPicker({
                 </select>
               </div>
               <div>
-                <div className="mb-1 text-xs text-[#71717A]">Direction</div>
+                <div className="mb-1 text-xs text-[#8A8A93]">Direction</div>
                 <SegmentedToggle
                   options={['Asc', 'Desc']}
                   value={sortDir === 'desc' ? 'Desc' : 'Asc'}

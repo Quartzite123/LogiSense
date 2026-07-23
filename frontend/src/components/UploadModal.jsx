@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import Lottie from 'lottie-react'
 import airplaneAnimation from '../assets/airplane.json'
 import { apiUrl } from '../lib/api.js'
+import { CheckIcon } from './icons.jsx'
 
 // Global upload modal (UIDESIGN §10). The header "Upload" button opens this via
 // the UI context. The backend replaces all data per upload.
@@ -66,7 +67,7 @@ export default function UploadModal({ open, onClose, onResult }) {
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[#F8F8F8]">Upload Delhivery file(s)</h2>
           {!busy && !done && (
-            <button onClick={close} className="text-[#71717A] hover:text-[#F8F8F8]" aria-label="Close">
+            <button onClick={close} className="text-[#8A8A93] hover:text-[#F8F8F8]" aria-label="Close">
               ×
             </button>
           )}
@@ -76,21 +77,21 @@ export default function UploadModal({ open, onClose, onResult }) {
           // --- Processing: airplane Lottie ---
           <div style={{ textAlign: 'center', padding: '32px' }}>
             <Lottie animationData={airplaneAnimation} loop style={{ width: 240, height: 240, margin: '0 auto' }} />
-            <p style={{ color: '#FFD60A', fontSize: '16px', fontWeight: 600, marginTop: '16px' }}>
+            <p style={{ color: '#B18AFF', fontSize: '16px', fontWeight: 600, marginTop: '16px' }}>
               Processing your file...
             </p>
-            <p style={{ color: '#71717A', fontSize: '13px', marginTop: '8px' }}>
+            <p style={{ color: '#8A8A93', fontSize: '13px', marginTop: '8px' }}>
               Analysing shipments, computing E+OT, generating insights
             </p>
           </div>
         ) : done != null ? (
           // --- Success ---
           <div style={{ textAlign: 'center', padding: '32px' }}>
-            <div style={{ fontSize: '48px' }}>✅</div>
+            <CheckIcon width="48" height="48" strokeWidth="1.2" className="mx-auto text-[#4ADE80]" />
             <p style={{ color: '#4ADE80', fontSize: '16px', fontWeight: 600, marginTop: '16px' }}>
               {done.toLocaleString()} shipments processed
             </p>
-            <p style={{ color: '#71717A', fontSize: '13px', marginTop: '8px' }}>
+            <p style={{ color: '#8A8A93', fontSize: '13px', marginTop: '8px' }}>
               Dashboard updated · Insights regenerating...
             </p>
           </div>
@@ -113,13 +114,13 @@ export default function UploadModal({ open, onClose, onResult }) {
               }}
               className="cursor-pointer rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors"
               style={{
-                borderColor: dragOver ? '#FFD60A' : '#27272A',
-                background: dragOver ? 'rgba(255,214,10,0.04)' : 'transparent',
+                borderColor: dragOver ? '#B18AFF' : '#27272A',
+                background: dragOver ? 'rgba(177, 138, 255,0.04)' : 'transparent',
               }}
             >
-              <div className="text-2xl text-[#71717A]">↑</div>
+              <div className="text-2xl text-[#8A8A93]">↑</div>
               <div className="mt-2 text-sm font-medium text-[#F8F8F8]">Drag &amp; drop .xlsx files here</div>
-              <div className="mt-1 text-xs text-[#71717A]">or click to browse</div>
+              <div className="mt-1 text-xs text-[#8A8A93]">or click to browse</div>
               <input
                 ref={inputRef}
                 type="file"
@@ -138,7 +139,7 @@ export default function UploadModal({ open, onClose, onResult }) {
                     className="inline-flex items-center gap-2 rounded-md border border-[#27272A] bg-[#15151A] px-2.5 py-1 text-xs text-[#F8F8F8]"
                   >
                     {f.name} · {(f.size / 1024).toFixed(0)} KB
-                    <button onClick={() => removeFile(i)} className="text-[#71717A] hover:text-[#F87171]">
+                    <button onClick={() => removeFile(i)} className="text-[#8A8A93] hover:text-[#F87171]">
                       ×
                     </button>
                   </span>
@@ -161,7 +162,7 @@ export default function UploadModal({ open, onClose, onResult }) {
                 onClick={process}
                 disabled={!files.length}
                 className="rounded-lg px-4 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background: '#FFD60A' }}
+                style={{ background: '#B18AFF' }}
               >
                 Process &amp; Update
               </button>

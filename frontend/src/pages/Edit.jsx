@@ -72,13 +72,13 @@ function MatrixTab() {
   return (
     <div className="rounded-xl border border-[#27272A] bg-[#0F0F11] p-5">
       <div className="mb-4 flex items-start justify-between gap-4">
-        <p className="max-w-2xl text-xs text-[#71717A]">
+        <p className="max-w-2xl text-xs text-[#8A8A93]">
           Diagonal = intra-zone TAT (yellow-tinted). Values are days (1–30). Edits affect future uploads
           only — past shipments keep their already-stored Expected TAT.
         </p>
         {editing ? (
           <div className="flex shrink-0 gap-2">
-            <button onClick={save} disabled={saving} className={BTN_PRIMARY} style={{ background: '#FFD60A' }}>
+            <button onClick={save} disabled={saving} className={BTN_PRIMARY} style={{ background: '#B18AFF' }}>
               {saving ? 'Saving…' : 'Save changes'}
             </button>
             <button onClick={cancel} disabled={saving} className={BTN_SECONDARY}>
@@ -87,7 +87,7 @@ function MatrixTab() {
           </div>
         ) : (
           <div className="flex shrink-0 gap-2">
-            <button onClick={startEdit} className={BTN_PRIMARY} style={{ background: '#FFD60A' }}>
+            <button onClick={startEdit} className={BTN_PRIMARY} style={{ background: '#B18AFF' }}>
               Edit matrix
             </button>
             <button onClick={reset} disabled={saving} className={BTN_SECONDARY}>
@@ -101,11 +101,11 @@ function MatrixTab() {
         <table className="border-collapse text-sm">
           <thead>
             <tr>
-              <th className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-left text-[11px] uppercase tracking-wide text-[#71717A]">
+              <th className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-left text-[11px] uppercase tracking-wide text-[#8A8A93]">
                 Origin ↓ / Dest →
               </th>
               {zones.map((z) => (
-                <th key={z} className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-center text-[11px] uppercase tracking-wide text-[#71717A]">
+                <th key={z} className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-center text-[11px] uppercase tracking-wide text-[#8A8A93]">
                   {z}
                 </th>
               ))}
@@ -114,7 +114,7 @@ function MatrixTab() {
           <tbody>
             {zones.map((origin, i) => (
               <tr key={origin}>
-                <td className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-[11px] uppercase tracking-wide text-[#71717A]">{origin}</td>
+                <td className="border border-[#27272A] bg-[#15151A] px-4 py-2.5 text-[11px] uppercase tracking-wide text-[#8A8A93]">{origin}</td>
                 {zones.map((_, j) => {
                   const diag = i === j
                   return (
@@ -122,8 +122,8 @@ function MatrixTab() {
                       key={j}
                       className="border border-[#27272A] px-3 py-2 text-center font-mono"
                       style={{
-                        background: diag ? 'rgba(255,214,10,0.08)' : '#0F0F11',
-                        color: diag ? '#FFD60A' : '#F8F8F8',
+                        background: diag ? 'rgba(177, 138, 255,0.08)' : '#0F0F11',
+                        color: diag ? '#B18AFF' : '#F8F8F8',
                         fontWeight: diag ? 700 : 400,
                       }}
                     >
@@ -134,8 +134,8 @@ function MatrixTab() {
                           max={30}
                           value={draft[i][j]}
                           onChange={(e) => setCell(i, j, e.target.value)}
-                          className="w-14 rounded border border-[#27272A] bg-[#0B0C0D] px-2 py-1 text-center font-mono text-sm focus:border-[#FFD60A] focus:outline-none"
-                          style={{ color: diag ? '#FFD60A' : '#F8F8F8', fontWeight: diag ? 700 : 400 }}
+                          className="w-14 rounded border border-[#27272A] bg-[#0B0C0D] px-2 py-1 text-center font-mono text-sm focus:border-[#B18AFF] focus:outline-none"
+                          style={{ color: diag ? '#B18AFF' : '#F8F8F8', fontWeight: diag ? 700 : 400 }}
                         />
                       ) : (
                         values[i][j] ?? '—'
@@ -274,8 +274,8 @@ function PincodeTab() {
       {/* Custom pincode file upload */}
       <div className="rounded-xl border-2 border-dashed border-[#27272A] p-5">
         <div className="text-sm font-medium text-[#F8F8F8]">Upload a custom pincode master (.xlsx)</div>
-        <div className="mt-1 text-xs text-[#71717A]">Required columns: pincode, city, state, zone, oda</div>
-        <div className="text-xs text-[#71717A]">Minimum 100 rows · Replaces current master for this session</div>
+        <div className="mt-1 text-xs text-[#8A8A93]">Required columns: pincode, city, state, zone, oda</div>
+        <div className="text-xs text-[#8A8A93]">Minimum 100 rows · Replaces current master for this session</div>
         <input
           ref={fileRef}
           type="file"
@@ -294,7 +294,7 @@ function PincodeTab() {
                 onClick={uploadCustom}
                 disabled={uploading}
                 className={BTN_PRIMARY}
-                style={{ background: '#FFD60A' }}
+                style={{ background: '#B18AFF' }}
               >
                 {uploading ? 'Uploading…' : 'Upload & Replace'}
               </button>
@@ -312,10 +312,10 @@ function PincodeTab() {
             setPage(1)
           }}
           placeholder="Search pincode / city / state…"
-          className="w-72 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-2 text-sm text-[#F8F8F8] placeholder:text-[#71717A] focus:border-[#3F3F46] focus:outline-none"
+          className="w-72 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-2 text-sm text-[#F8F8F8] placeholder:text-[#8A8A93] focus:border-[#3F3F46] focus:outline-none"
         />
         <div className="flex items-center gap-4">
-          <span className="text-sm text-[#71717A]">
+          <span className="text-sm text-[#8A8A93]">
             <span className="font-mono text-[#F8F8F8]">{total.toLocaleString()}</span> pincodes
           </span>
           <button onClick={resetPincodes} disabled={resetting} className={BTN_SECONDARY}>
@@ -325,7 +325,7 @@ function PincodeTab() {
       </div>
 
       {/* Edit hint */}
-      <p className="text-xs text-[#71717A]">
+      <p className="text-xs text-[#8A8A93]">
         Click an ODA pill to toggle YES/NO — search results are editable too. Changes save instantly (this session only).
       </p>
 
@@ -343,7 +343,7 @@ function PincodeTab() {
         >
           ← Prev
         </button>
-        <span className="text-[#71717A]">
+        <span className="text-[#8A8A93]">
           Page <span className="font-mono text-[#F8F8F8]">{page}</span> of{' '}
           <span className="font-mono text-[#F8F8F8]">{totalPages.toLocaleString()}</span>
         </span>
@@ -376,8 +376,8 @@ export default function Edit() {
               onClick={() => setTab(t)}
               className="pb-3 text-sm font-medium transition-colors"
               style={{
-                color: active ? '#F8F8F8' : '#71717A',
-                borderBottom: active ? '2px solid #FFD60A' : '2px solid transparent',
+                color: active ? '#F8F8F8' : '#8A8A93',
+                borderBottom: active ? '2px solid #B18AFF' : '2px solid transparent',
                 marginBottom: -1,
               }}
             >

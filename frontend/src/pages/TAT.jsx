@@ -12,15 +12,15 @@ import { fetchJSON, download } from '../lib/api.js'
 function Chip({ label, value, sub, color }) {
   return (
     <div className="flex-1 rounded-xl border border-[#27272A] bg-[#0F0F11] p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#71717A]">{label}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#8A8A93]">{label}</div>
       <div className="mt-1 font-mono text-2xl font-bold" style={{ color }}>{value}</div>
-      {sub != null && <div className="mt-0.5 text-xs text-[#71717A]">{sub}</div>}
+      {sub != null && <div className="mt-0.5 text-xs text-[#8A8A93]">{sub}</div>}
     </div>
   )
 }
 
 const variance = (v) => (
-  <span className="font-mono" style={{ color: v == null ? '#71717A' : v < 0 ? '#4ADE80' : v > 0 ? '#F87171' : '#60A5FA' }}>
+  <span className="font-mono" style={{ color: v == null ? '#8A8A93' : v < 0 ? '#4ADE80' : v > 0 ? '#F87171' : '#60A5FA' }}>
     {v == null ? '—' : v}
   </span>
 )
@@ -51,8 +51,8 @@ const DEFAULT_KEYS = [
 
 const ODA_DETAIL_COLUMNS = [
   { key: 'company', label: 'Company' },
-  { key: 'oda_eot', label: 'ODA E+OT %', render: (v) => (v == null ? '—' : <span className="font-mono" style={{ color: '#FFD60A' }}>{v}%</span>) },
-  { key: 'non_eot', label: 'Non-ODA E+OT %', render: (v) => (v == null ? '—' : <span className="font-mono" style={{ color: '#FFD60A' }}>{v}%</span>) },
+  { key: 'oda_eot', label: 'ODA E+OT %', render: (v) => (v == null ? '—' : <span className="font-mono" style={{ color: '#B18AFF' }}>{v}%</span>) },
+  { key: 'non_eot', label: 'Non-ODA E+OT %', render: (v) => (v == null ? '—' : <span className="font-mono" style={{ color: '#B18AFF' }}>{v}%</span>) },
 ]
 
 export default function TAT() {
@@ -128,7 +128,7 @@ export default function TAT() {
           {odaGroups.length > 0 && (
             <div className="rounded-xl border border-[#27272A] bg-[#0F0F11] p-5">
               <h2 className="mb-1 text-sm font-semibold text-[#F8F8F8]">ODA vs Non-ODA — Delivery Performance</h2>
-              {onlyNonOda && <p className="mb-3 text-xs text-[#71717A]">No ODA-classified deliveries in current dataset</p>}
+              {onlyNonOda && <p className="mb-3 text-xs text-[#8A8A93]">No ODA-classified deliveries in current dataset</p>}
               <GroupedBar
                 data={odaGroups}
                 xKey="group"
@@ -141,7 +141,7 @@ export default function TAT() {
                 ]}
               />
               <div className="mt-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#71717A]">Detail breakdown — by company</div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#8A8A93]">Detail breakdown — by company</div>
                 <DataTable columns={ODA_DETAIL_COLUMNS} data={odaDetail} defaultSort={{ key: 'non_eot', direction: 'desc' }} />
               </div>
             </div>

@@ -26,24 +26,24 @@ function Panel({ title, children, className = '' }) {
 function KpiGrid({ d }) {
   return (
     <>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="ls-stagger grid grid-cols-3 gap-4">
         <KPICard label="TOTAL ORDERS" value={d.total} valueColor="#F8F8F8" subtext="All shipments in pipeline" />
         <KPICard label="DELIVERED" value={d.delivered} valueColor="#4ADE80" subtext={`${pct(d.delivered, d.total).toFixed(1)}% of total`} showBar barPercent={pct(d.delivered, d.total)} />
         <KPICard label="IN TRANSIT" value={d.in_transit} valueColor="#60A5FA" subtext={`${pct(d.in_transit, d.total).toFixed(1)}% of total`} showBar barPercent={pct(d.in_transit, d.total)} />
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <KPICard label="PENDING" value={d.pending} valueColor="#FFD60A" subtext={`${pct(d.pending, d.total).toFixed(1)}% of total`} showBar barPercent={pct(d.pending, d.total)} />
+      <div className="ls-stagger grid grid-cols-3 gap-4">
+        <KPICard label="PENDING" value={d.pending} valueColor="#FBBF24" subtext={`${pct(d.pending, d.total).toFixed(1)}% of total`} showBar barPercent={pct(d.pending, d.total)} />
         <KPICard label="RTO" value={d.rto} valueColor="#F87171" subtext={`${pct(d.rto, d.total).toFixed(1)}% of total`} showBar barPercent={pct(d.rto, d.total)} />
         <KPICard label="DATE RANGE" value={`${d.date_min} → ${d.date_max}`} isDateCard subtext="based on Manifest Date" />
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="ls-stagger grid grid-cols-4 gap-4">
         <KPICard label="EARLY" value={d.early} valueColor="#4ADE80" subtext={`${pct(d.early, d.delivered).toFixed(1)}% of delivered`} showBar barPercent={pct(d.early, d.delivered)} />
         <KPICard label="ON TIME" value={d.on_time} valueColor="#60A5FA" subtext={`${pct(d.on_time, d.delivered).toFixed(1)}% of delivered`} showBar barPercent={pct(d.on_time, d.delivered)} />
-        <KPICard label="E+OT" value={d.eot_count} valueColor="#FFD60A" subtext={`${d.eot_percent.toFixed(1)}% E+OT`} />
+        <KPICard hero label="E+OT" value={d.eot_count} valueColor="#B18AFF" subtext={`${d.eot_percent.toFixed(1)}% E+OT`} />
         <KPICard label="LATE" value={d.late} valueColor="#F87171" subtext={`${pct(d.late, d.delivered).toFixed(1)}% of delivered`} showBar barPercent={pct(d.late, d.delivered)} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <KPICard label="ODA · OUT OF DELIVERY AREA" value={d.oda_count} valueColor="#FFD60A" subtext={`${pct(d.oda_count, d.total).toFixed(1)}% of total`} />
+      <div className="ls-stagger grid grid-cols-2 gap-4">
+        <KPICard label="ODA · OUT OF DELIVERY AREA" value={d.oda_count} valueColor="#B18AFF" subtext={`${pct(d.oda_count, d.total).toFixed(1)}% of total`} />
         <KPICard label="NON-ODA" value={d.non_oda_count} valueColor="#F8F8F8" subtext={`${pct(d.non_oda_count, d.total).toFixed(1)}% of total`} />
       </div>
     </>
@@ -55,8 +55,8 @@ function KpiSection({ query }) {
     return (
       <div className="rounded-lg border border-[#F87171]/50 bg-[#F87171]/10 p-5 text-sm">
         <div className="font-medium text-[#F87171]">Couldn’t load KPIs.</div>
-        <div className="mt-1 text-[#71717A]">{String(query.error?.message)} — is the backend running on :8000?</div>
-        <button onClick={() => query.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#FFD60A]">
+        <div className="mt-1 text-[#8A8A93]">{String(query.error?.message)} — is the backend running on :8000?</div>
+        <button onClick={() => query.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#B18AFF]">
           Retry
         </button>
       </div>
@@ -78,7 +78,7 @@ const TREND_COLUMNS = [
   { key: 'early', label: 'Early', render: (v) => <span className="font-mono" style={{ color: '#4ADE80' }}>{v}</span> },
   { key: 'on_time', label: 'On Time', render: (v) => <span className="font-mono" style={{ color: '#60A5FA' }}>{v}</span> },
   { key: 'late', label: 'Late', render: (v) => <span className="font-mono" style={{ color: '#F87171' }}>{v}</span> },
-  { key: 'eot_percent', label: 'E+OT %', render: (v) => <span className="font-mono" style={{ color: '#FFD60A' }}>{v}%</span> },
+  { key: 'eot_percent', label: 'E+OT %', render: (v) => <span className="font-mono" style={{ color: '#B18AFF' }}>{v}%</span> },
 ]
 
 export default function Landing() {

@@ -33,7 +33,7 @@ function IconButton({ children, active, ...rest }) {
   return (
     <button
       {...rest}
-      className="flex h-8 w-8 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#1A1A1F] hover:text-[#F8F8F8]"
+      className="flex h-8 w-8 items-center justify-center rounded-md text-[#8A8A93] transition-colors hover:bg-[#1A1A1F] hover:text-[#F8F8F8]"
       style={active ? { color: '#F8F8F8', background: '#1A1A1F' } : undefined}
     >
       {children}
@@ -126,11 +126,11 @@ export default function DataTable({
                   className={`sticky top-0 z-10 cursor-pointer select-none whitespace-nowrap border-b border-[#27272A] bg-[#15151A] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.05em] hover:text-[#F8F8F8] ${
                     isNum ? 'text-right' : 'text-left'
                   }`}
-                  style={{ color: active ? '#F8F8F8' : '#71717A' }}
+                  style={{ color: active ? '#F8F8F8' : '#8A8A93' }}
                 >
                   {col.label}
                   {active && (
-                    <span style={{ color: '#FFD60A' }}>
+                    <span style={{ color: '#B18AFF' }}>
                       {sort.direction === 'asc' ? ' ▲' : ' ▼'}
                     </span>
                   )}
@@ -142,7 +142,7 @@ export default function DataTable({
         <tbody>
           {sorted.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-12 text-center text-[#71717A]">
+              <td colSpan={columns.length} className="px-4 py-12 text-center text-[#8A8A93]">
                 No data available
               </td>
             </tr>
@@ -199,7 +199,7 @@ export default function DataTable({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Filter rows…"
-          className="mr-1 w-48 rounded-md border border-[#27272A] bg-[#15151A] px-2 py-1.5 text-sm text-[#F8F8F8] placeholder:text-[#71717A] focus:border-[#3F3F46] focus:outline-none"
+          className="mr-1 w-48 rounded-md border border-[#27272A] bg-[#15151A] px-2 py-1.5 text-sm text-[#F8F8F8] placeholder:text-[#8A8A93] focus:border-[#3F3F46] focus:outline-none"
         />
       )}
       <IconButton active={showSearch} title="Search" onClick={() => setShowSearch((s) => !s)}>

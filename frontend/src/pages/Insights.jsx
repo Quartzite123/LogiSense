@@ -13,7 +13,7 @@ const TOP_N = 6
 
 function SectionLabel({ children }) {
   return (
-    <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#71717A]">{children}</h2>
+    <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8A8A93]">{children}</h2>
   )
 }
 
@@ -54,8 +54,8 @@ export default function Insights() {
       {patterns.isError ? (
         <div className="rounded-lg border border-[#F87171]/50 bg-[#F87171]/10 p-5 text-sm">
           <div className="font-medium text-[#F87171]">Couldn’t load insights.</div>
-          <div className="mt-1 text-[#71717A]">{String(patterns.error?.message)} — is the backend running on :8000?</div>
-          <button onClick={() => patterns.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#FFD60A]">
+          <div className="mt-1 text-[#8A8A93]">{String(patterns.error?.message)} — is the backend running on :8000?</div>
+          <button onClick={() => patterns.refetch()} className="mt-3 rounded-md border border-[#27272A] bg-[#15151A] px-3 py-1.5 text-[#F8F8F8] hover:border-[#B18AFF]">
             Retry
           </button>
         </div>
@@ -80,11 +80,11 @@ export default function Insights() {
             </div>
 
             {visible.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#27272A] bg-[#0F0F11] p-8 text-center text-sm text-[#71717A]">
+              <div className="rounded-xl border border-dashed border-[#27272A] bg-[#0F0F11] p-8 text-center text-sm text-[#8A8A93]">
                 No patterns detected in the current data.
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="ls-stagger grid grid-cols-1 gap-4 md:grid-cols-2">
                 {visible.map((p) => (
                   <PatternCard key={p.id} pattern={p} overallOdaPct={overallOdaPct} />
                 ))}
@@ -94,7 +94,7 @@ export default function Insights() {
             {list.length > TOP_N && (
               <button
                 onClick={() => setShowAll((s) => !s)}
-                className="self-center rounded-lg border border-[#27272A] bg-[#15151A] px-4 py-2 text-sm text-[#D4D4D8] transition-colors hover:border-[#FFD60A] hover:text-[#F8F8F8]"
+                className="self-center rounded-lg border border-[#27272A] bg-[#15151A] px-4 py-2 text-sm text-[#D4D4D8] transition-colors hover:border-[#B18AFF] hover:text-[#F8F8F8]"
               >
                 {showAll ? 'Show fewer ▴' : `Show all ${list.length} patterns ▾`}
               </button>

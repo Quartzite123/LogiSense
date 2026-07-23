@@ -34,7 +34,7 @@ const AGG_COLUMNS = [
   { key: 'in_transit', label: 'In Transit' },
   { key: 'pending', label: 'Pending' },
   { key: 'rto', label: 'RTO' },
-  { key: 'eot_percent', label: 'E+OT %', render: (v) => <span className="font-mono" style={{ color: '#FFD60A' }}>{v}%</span> },
+  { key: 'eot_percent', label: 'E+OT %', render: (v) => <span className="font-mono" style={{ color: '#B18AFF' }}>{v}%</span> },
   { key: 'oda_percent', label: 'ODA %', render: (v) => <span className="font-mono">{v}%</span> },
 ]
 
@@ -124,13 +124,13 @@ export default function Customize() {
       ) : (
         <>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-[#71717A]">View</span>
+            <span className="text-xs text-[#8A8A93]">View</span>
             <SegmentedToggle options={['Detail', 'Aggregate']} value={view} onChange={setView} />
           </div>
 
           <FilterPanel
             right={
-              <button onClick={resetFilters} className="rounded-md border border-[#27272A] px-3 py-1.5 text-xs text-[#71717A] hover:border-[#3F3F46] hover:text-[#F8F8F8]">
+              <button onClick={resetFilters} className="rounded-md border border-[#27272A] px-3 py-1.5 text-xs text-[#8A8A93] hover:border-[#3F3F46] hover:text-[#F8F8F8]">
                 Reset Filters
               </button>
             }
@@ -156,7 +156,7 @@ export default function Customize() {
             </div>
           </FilterPanel>
 
-          <div className="text-sm text-[#71717A]">
+          <div className="text-sm text-[#8A8A93]">
             Showing <span className="font-mono text-[#F8F8F8]">{shown.toLocaleString()}</span> of{' '}
             <span className="font-mono text-[#F8F8F8]">{total.toLocaleString()}</span> shipments
           </div>

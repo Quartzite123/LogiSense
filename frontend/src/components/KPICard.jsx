@@ -11,20 +11,31 @@ export default function KPICard({
   showBar = false,
   barPercent = 0,
   isDateCard = false,
+  hero = false,
+  className = '',
 }) {
   const [hover, setHover] = useState(false)
   const bar = Math.max(0, Math.min(100, Number(barPercent) || 0))
+
+  // The hero card carries the headline metric: tinted surface, brand-tinted
+  // border and a resting glow so it outranks the surrounding tiles at a glance.
+  const restBorder = hero ? 'rgba(177, 138, 255,0.30)' : '#27272A'
+  const restShadow = hero ? '0 0 24px rgba(177, 138, 255,0.07)' : 'none'
 
   return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      className={className}
       style={{
-        background: '#0F0F11',
-        border: `1px solid ${hover ? '#FFD60A' : '#27272A'}`,
+        background: hero
+          ? 'linear-gradient(160deg, rgba(177, 138, 255,0.06) 0%, rgba(177, 138, 255,0.015) 45%, #0F0F11 100%)'
+          : '#0F0F11',
+        border: `1px solid ${hover ? '#B18AFF' : restBorder}`,
         borderRadius: 12,
-        padding: 18,
-        boxShadow: hover ? '0 0 12px rgba(255,214,10,0.15)' : 'none',
+        padding: hero ? 22 : 18,
+        height: '100%',
+        boxShadow: hover ? '0 0 12px rgba(177, 138, 255,0.15)' : restShadow,
         transform: hover ? 'translateY(-2px)' : 'translateY(0)',
         transition:
           'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
@@ -35,7 +46,7 @@ export default function KPICard({
           fontSize: 11,
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          color: '#71717A',
+          color: hero ? '#A1A1AA' : '#8A8A93',
         }}
       >
         {label}
@@ -56,10 +67,11 @@ export default function KPICard({
       ) : (
         <div
           style={{
-            marginTop: 6,
-            fontSize: 32,
+            marginTop: hero ? 10 : 6,
+            fontSize: hero ? 46 : 32,
             fontWeight: 700,
-            lineHeight: 1.1,
+            lineHeight: 1.05,
+            letterSpacing: hero ? '-0.01em' : undefined,
             color: valueColor,
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
           }}
@@ -90,7 +102,7 @@ export default function KPICard({
       )}
 
       {subtext != null && (
-        <div style={{ marginTop: showBar ? 0 : 8, fontSize: 12, color: '#71717A' }}>
+        <div style={{ marginTop: showBar ? 0 : 8, fontSize: 12, color: '#8A8A93' }}>
           {subtext}
         </div>
       )}

@@ -14,10 +14,10 @@ export const tokens = {
   // Text
   text: '#F8F8F8',
   textDim: '#A1A1AA',
-  muted: '#71717A',
+  muted: '#8A8A93',
 
   // Brand
-  primary: '#FFD60A',
+  primary: '#B18AFF',
   primaryDim: '#9A6800',
 
   // Status (semantic — consistent everywhere)

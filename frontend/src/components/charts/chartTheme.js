@@ -4,7 +4,7 @@ import { tokens } from '../../styles/tokens.js'
 
 export const chartTheme = {
   grid: tokens.borderSoft, // #1F1F23 — horizontal gridlines only
-  axis: tokens.muted, // #71717A — axis text
+  axis: tokens.muted, // #8A8A93 — axis text
   tooltip: { bg: tokens.surface2, border: tokens.border, text: tokens.text },
   fontFamily: "'Inter', sans-serif",
   status: {

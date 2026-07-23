@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../../lib/useIsMobile.js'
 import { apiUrl } from '../../lib/api.js'
+import { ChatIcon, SparkIcon } from '../icons.jsx'
 
 // AI chat for the Insights page (INSIGHTS_SPEC §3.4). Self-contained: local
 // conversation state, posts the full history to /api/assistant/chat, renders
 // bubbles + suggestion chips + a welcome card.
 // Desktop: inline panel at the bottom of the page.
-// Mobile (≤768px): a floating 💬 button that opens a full-screen chat overlay.
+// Mobile (≤768px): a floating chat button that opens a full-screen overlay.
 const SUGGESTIONS = [
   'Which client is most at risk?',
   'Why is PRISM INDUSTRIES declining?',
@@ -35,7 +36,7 @@ function Bubble({ role, content }) {
       <div
         className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
-            ? 'rounded-br-sm bg-[#FFD60A] text-black'
+            ? 'rounded-br-sm bg-[#B18AFF] text-black'
             : 'rounded-bl-sm border border-[#27272A] bg-[#15151A] text-[#E4E4E7]'
         }`}
       >
@@ -77,9 +78,9 @@ export default function ChatPanel() {
   const messagesContent =
     messages.length === 0 ? (
       <div className="flex h-full flex-col items-center justify-center text-center">
-        <div className="text-3xl">✦</div>
+        <SparkIcon width="30" height="30" className="text-[#B18AFF]" />
         <h3 className="mt-3 text-base font-semibold text-[#F8F8F8]">How can I help?</h3>
-        <p className="mt-1 max-w-sm text-sm text-[#71717A]">
+        <p className="mt-1 max-w-sm text-sm text-[#8A8A93]">
           Ask about clients at risk, ODA lateness, growth, or what changed this period.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -87,7 +88,7 @@ export default function ChatPanel() {
             <button
               key={s}
               onClick={() => send(s)}
-              className="rounded-full border border-[#27272A] bg-[#15151A] px-3.5 py-1.5 text-xs text-[#D4D4D8] transition-colors hover:border-[#FFD60A] hover:text-[#F8F8F8]"
+              className="rounded-full border border-[#27272A] bg-[#15151A] px-3.5 py-1.5 text-xs text-[#D4D4D8] transition-colors hover:border-[#B18AFF] hover:text-[#F8F8F8]"
             >
               {s}
             </button>
@@ -105,7 +106,7 @@ export default function ChatPanel() {
               {[0, 1, 2].map((d) => (
                 <span
                   key={d}
-                  className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[#71717A]"
+                  className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[#8A8A93]"
                   style={{ animationDelay: `${d * 0.15}s` }}
                 />
               ))}
@@ -135,7 +136,7 @@ export default function ChatPanel() {
           onClick={() => send()}
           disabled={!input.trim() || sending}
           className="shrink-0 rounded-lg px-4 py-2.5 text-sm font-semibold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-          style={{ background: '#FFD60A' }}
+          style={{ background: '#B18AFF' }}
         >
           Send
         </button>
@@ -151,22 +152,22 @@ export default function ChatPanel() {
           onClick={() => setOverlayOpen(true)}
           aria-label="Open chat"
           className="fixed z-[55] flex items-center justify-center rounded-full"
-          style={{ bottom: 68, right: 16, width: 48, height: 48, background: '#FFD60A', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+          style={{ bottom: 68, right: 16, width: 48, height: 48, background: '#B18AFF', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
         >
-          <span style={{ fontSize: 20 }}>💬</span>
+          <ChatIcon width="22" height="22" className="text-black" />
         </button>
 
         {overlayOpen && (
           <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#0B0C0D' }}>
             <header className="flex items-center justify-between border-b border-[#27272A] px-5 py-4">
               <div className="flex items-center gap-2">
-                <span className="text-[#FFD60A]">✦</span>
+                <SparkIcon width="16" height="16" className="text-[#B18AFF]" />
                 <h2 className="text-base font-semibold text-[#F8F8F8]">Ask the AI</h2>
               </div>
               <button
                 onClick={() => setOverlayOpen(false)}
                 aria-label="Close chat"
-                className="text-2xl leading-none text-[#71717A] hover:text-[#F8F8F8]"
+                className="text-2xl leading-none text-[#8A8A93] hover:text-[#F8F8F8]"
               >
                 ×
               </button>
@@ -186,10 +187,10 @@ export default function ChatPanel() {
     <div className="flex flex-col overflow-hidden rounded-xl border border-[#27272A] bg-[#0F0F11]" style={{ minHeight: 400 }}>
       <div className="border-b border-[#27272A] px-6 py-3.5">
         <div className="flex items-center gap-2">
-          <span className="text-[#FFD60A]">✦</span>
+          <SparkIcon width="16" height="16" className="text-[#B18AFF]" />
           <h2 className="text-[15px] font-semibold text-[#F8F8F8]">Ask the AI</h2>
         </div>
-        <p className="mt-0.5 text-xs text-[#71717A]">Grounded in your current shipment data</p>
+        <p className="mt-0.5 text-xs text-[#8A8A93]">Grounded in your current shipment data</p>
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-5" style={{ maxHeight: 460 }}>
         {messagesContent}
