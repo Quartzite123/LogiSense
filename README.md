@@ -168,6 +168,7 @@ LogiSense/
 │       ├── main.jsx              # QueryClient (staleTime 5m, no window-focus refetch)
 │       ├── App.jsx               # Routes, ProtectedShell layout, lazy Insights, Suspense
 │       ├── index.css             # Global CSS, mobile media query, login shake keyframes
+│       ├── components/icons.jsx  # Shared inline-SVG icon set (no icon library, no emoji)
 │       ├── lib/
 │       │   ├── api.js            # apiUrl, fetchJSON, sendJSON, download (credentials-aware)
 │       │   └── useIsMobile.js    # Shared matchMedia(768px) hook
@@ -561,6 +562,7 @@ inside the session middleware, so they read and write the caller's own session D
 | GET | `/api/insights/patterns` | Cached pattern cards, sorted red, yellow, green, grey. |
 | GET | `/api/insights/root-cause?company=X` | Cached per-company root-cause facts + narrative, or 404. |
 | POST | `/api/assistant/chat` | `{messages[]}` to `{reply, offline, suggestions}`, grounded in cached insights. |
+| POST | `/api/assistant/chat/stream` | Same answer delivered incrementally as NDJSON (`{"delta"}` lines, then `{"done", "offline"}`) so the UI types it out. What the chat actually uses. |
 | GET | `/api/assistant/suggestions` | The four starter chips. |
 
 ### Column display names (`schemas.py`)
@@ -638,7 +640,22 @@ demo seed), so page loads never wait on the LLM.
 ## 9. The AI Assistant
 
 **Where:** the chat lives at the bottom of the Insights page (inline on desktop, a floating
-overlay on mobile). **Endpoint:** `POST /api/assistant/chat`.
+overlay on mobile). **Endpoint:** `POST /api/assistant/chat/stream` (the blocking
+`POST /api/assistant/chat` is kept for compatibility).
+
+### Streaming
+
+Replies are streamed so they type out rather than appearing all at once. The wire format is
+NDJSON: `{"delta": "..."}` per fragment, then `{"done": true, "offline": bool}`. The frontend
+reads it with a `ReadableStream` and appends each fragment to the live bubble.
+
+Both delivery paths stream. With a working key, Groq tokens are forwarded as they are generated
+(`stream: true`), so the first text lands in well under a second instead of after the whole
+generation. The offline path has no upstream to stream, so its locally built answer is emitted
+word-by-word for the same feel.
+
+The system prompt, including the guardrails below, lives in one `_build_system()` used by both
+the streaming and blocking paths, so they cannot drift apart.
 
 ### Architecture
 
@@ -730,7 +747,7 @@ not the login. A productized build would add real server-side auth and API-level
 | `/edit` | Edit | Edit, Reference data |
 | `/assistant` | (redirect) | Redirects to `/insights` so old bookmarks work |
 
-Sidebar active state: a 3px yellow left border plus a `rgba(255,214,10,0.06)` background.
+Sidebar active state: a 3px lavender left border plus a `rgba(177,138,255,0.06)` background.
 
 ### Mobile
 
@@ -770,18 +787,20 @@ QueryClient defaults: `staleTime: 5min`, `gcTime: 10min`, `retry: 1`,
 
 ```
 Row 1 (3 cols): TOTAL ORDERS, DELIVERED (green+bar), IN TRANSIT (blue+bar)
-Row 2 (3 cols): PENDING (yellow+bar), RTO (red+bar), DATE RANGE (manifest-based)
-Row 3 (4 cols): EARLY (green+bar), ON TIME (blue+bar), E+OT (yellow, hero), LATE (red+bar)
-Row 4 (2 cols): ODA (yellow), NON-ODA (white)
+Row 2 (3 cols): PENDING (amber+bar), RTO (red+bar), DATE RANGE (manifest-based)
+Row 3 (4 cols): EARLY (green+bar), ON TIME (blue+bar), E+OT (lavender HERO), LATE (red+bar)
+Row 4 (2 cols): ODA (lavender), NON-ODA (white)
 ```
 IN TRANSIT counts everything that is not Delivered or RTO. All cards lift on hover only.
 
 ### Key component contracts
 
-**KPICard:** `label, value, valueColor, subtext, showBar, barPercent, isDateCard`.
+**KPICard:** `label, value, valueColor, subtext, showBar, barPercent, isDateCard, hero,
+className`. `hero` renders the headline-metric treatment (46px value, brand-tinted surface,
+resting glow); E+OT is the only card that uses it.
 
 **DataTable:** `columns[{key,label,render?}], data, defaultSort, onExport, sort/onSortChange
-(controlled), renderExpanded`. Zebra `#0F0F11`/`#131316`, sticky `#15151A` header, yellow sort
+(controlled), renderExpanded`. Zebra `#0F0F11`/`#131316`, sticky `#15151A` header, lavender sort
 indicator, numeric right-align in JetBrains Mono, a search/download/expand toolbar.
 
 **StatusPill:** value-driven color mapping (see 12). At Risk pills match even with a
@@ -793,8 +812,11 @@ fullscreen expand modal.
 **UploadModal:** global singleton via `context/ui.jsx`. Drag-drop, file chips, a replace
 warning, Lottie processing, success state.
 
-**ColumnPicker:** yellow-tint pills with an x to hide, a dropdown to re-add, Show all / Reset,
+**ColumnPicker:** lavender-tint pills with an x to hide, a dropdown to re-add, Show all / Reset,
 plus Sort By and Asc/Desc. Used on TAT, Transit, Customize.
+
+**icons.jsx:** the shared inline-SVG icon set (no icon library, no emoji). Built from one `ico()`
+factory and consumed by the sidebar, mobile nav, chat, digest and upload modal.
 
 ---
 
@@ -812,13 +834,13 @@ plus Sort By and Asc/Desc. Used on TAT, Transit, Customize.
 | borderSoft | `#1F1F23` | Internal dividers, chart gridlines |
 | text | `#F8F8F8` | Primary text |
 | textDim | `#A1A1AA` | Secondary |
-| muted | `#71717A` | Labels, captions, axes |
-| primary | `#FFD60A` | Yellow: brand, values, active nav, E+OT |
+| muted | `#8A8A93` | Labels, captions, axes (meets WCAG AA on every surface) |
+| primary | `#B18AFF` | Lavender: brand, values, active nav, E+OT |
 | early | `#4ADE80` | Green |
 | onTime | `#60A5FA` | Blue |
 | late | `#F87171` | Red |
 | rto | `#94A3B8` | Grey |
-| pending | `#FBBF24` | Amber (distinct from brand yellow) |
+| pending | `#FBBF24` | Amber (Pending status; distinct from the traffic-light yellow) |
 
 Pill backgrounds are the status color at 15% opacity.
 **Status colors are semantic and identical across every chart, pill, and cell.**
@@ -927,30 +949,42 @@ python -c "import sqlite3, shutil; c=sqlite3.connect('logisense.db'); c.execute(
    the Groq API (a 401 means the key is invalid, not a code bug). The app never crashes on a bad
    key; it degrades to the deterministic path.
 
-4. **Cross-origin cookies need `SameSite=None; Secure` plus `credentials: 'include'`.** The demo
+4. **`backend/.env` must contain the whole assignment, not just the key.** Pasting only the raw
+   `gsk_...` value is the single most common setup mistake here: dotenv then parses zero
+   variables and the key arrives as an empty string (which surfaces as
+   `Illegal header value b'Bearer '`, not a 401). The file needs:
+   `GROQ_API_KEY=gsk_...` with no quotes and no spaces around `=`. On Render the name and value
+   are separate fields, so do not paste `GROQ_API_KEY=` into the value box.
+
+5. **A rejected Groq key is cached for the process lifetime.** A 401 means the key is bad rather
+   than a transient error, and retrying it on every message cost a full round-trip before the
+   fallback (felt directly as chat latency). The backend therefore stops trying Groq after the
+   first 401, so **fixing a key always requires restarting the service**, locally and on Render.
+
+6. **Cross-origin cookies need `SameSite=None; Secure` plus `credentials: 'include'`.** The demo
    frontend (Vercel) and backend (Render) are different origins, so a `Lax` cookie would never be
    sent on XHR and sessions would not persist. Do not "simplify" this to `Lax` in production.
 
-5. **Reference edits are session-scoped.** Toggling a pincode's ODA or editing the matrix writes
+7. **Reference edits are session-scoped.** Toggling a pincode's ODA or editing the matrix writes
    to the caller's session DB, never `logisense.db`. Verifying against `logisense.db` after an
    edit will correctly show no change.
 
-6. **Vite proxy targets `127.0.0.1`, not `localhost`.** Windows resolves localhost to IPv6 while
+8. **Vite proxy targets `127.0.0.1`, not `localhost`.** Windows resolves localhost to IPv6 while
    uvicorn binds IPv4, causing ECONNREFUSED. Do not change it back to localhost.
 
-7. **`client` column is useless for grouping.** Real company names live in `order_id` (4.8).
+9. **`client` column is useless for grouping.** Real company names live in `order_id` (4.8).
    Any new company feature must use `order_id`.
 
-8. **ODA = 0 can be correct.** If the dataset only reaches Normal Service pincodes, zero ODA is
+10. **ODA = 0 can be correct.** If the dataset only reaches Normal Service pincodes, zero ODA is
    the truth. Verify with `SELECT _oda, COUNT(*) FROM shipments_latest GROUP BY _oda`.
 
-9. **Every upload wipes previous data** by design (4.6). There is no merge mode.
+11. **Every upload wipes previous data** by design (4.6). There is no merge mode.
 
-10. **Two risk classifiers exist deliberately:** the shared `transit_risk.py` (RTO in its own
+12. **Two risk classifiers exist deliberately:** the shared `transit_risk.py` (RTO in its own
     bucket) for Transit and exports, and the original 4-bucket date-based classification inside
     aggregate-transit's company-detail.
 
-11. **`.env` must never be committed.** It holds the Groq key. Verify `.gitignore` covers `.env`
+13. **`.env` must never be committed.** It holds the Groq key. Verify `.gitignore` covers `.env`
     before any push.
 
 ---
@@ -961,7 +995,7 @@ python -c "import sqlite3, shutil; c=sqlite3.connect('logisense.db'); c.execute(
 |---|---|---|
 | Policy-document RAG layer | High (v2) | Let the assistant answer from uploaded SLA/policy PDFs (a real vector store, not the current context-stuffing) |
 | Problem-lanes table in TAT | Medium | A sortable worst-lane table on the TAT page (descriptive BI, kept off the Insights tab on purpose) |
-| Streaming chat responses | Nice-to-have | Token-by-token typing via SSE |
+| Sparklines on pattern cards | Nice-to-have | A small volume/late-rate trend inline on each company card |
 | Real multi-tenant auth | If productized | Replace the client-side demo gate with server-side auth + API-level protection |
 
 Dropped: the Electron desktop `.exe` (superseded by the hosted web demo).
