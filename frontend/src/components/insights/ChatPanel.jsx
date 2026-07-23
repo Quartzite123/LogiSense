@@ -15,18 +15,42 @@ const SUGGESTIONS = [
   'What improved this period?',
 ]
 
-async function postChat(messages) {
-  const res = await fetch(apiUrl('/api/assistant/chat'), {
+// Reads the NDJSON stream ({"delta":"..."} per line) and hands each fragment to
+// onDelta as it lands, so the reply types itself out instead of appearing at once.
+async function streamChat(messages, onDelta) {
+  const res = await fetch(apiUrl('/api/assistant/chat/stream'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ messages }),
   })
-  if (!res.ok) {
+  if (!res.ok || !res.body) {
     const b = await res.json().catch(() => ({}))
     throw new Error(b.detail || `Chat failed (HTTP ${res.status})`)
   }
-  return res.json()
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += decoder.decode(value, { stream: true })
+    // Emit only complete lines; keep any partial tail for the next chunk.
+    let nl
+    while ((nl = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, nl).trim()
+      buf = buf.slice(nl + 1)
+      if (!line) continue
+      let obj
+      try {
+        obj = JSON.parse(line)
+      } catch {
+        continue
+      }
+      if (obj.delta) onDelta(obj.delta)
+    }
+  }
 }
 
 function Bubble({ role, content }) {
@@ -62,14 +86,26 @@ export default function ChatPanel() {
     const content = (text ?? input).trim()
     if (!content || sending) return
     const next = [...messages, { role: 'user', content }]
-    setMessages(next)
+    // Empty assistant bubble is the target the stream fills; it stays hidden
+    // (and the typing dots stay up) until the first fragment arrives.
+    setMessages([...next, { role: 'assistant', content: '' }])
     setInput('')
     setSending(true)
     try {
-      const data = await postChat(next)
-      setMessages((m) => [...m, { role: 'assistant', content: data.reply }])
+      await streamChat(next, (delta) => {
+        setMessages((m) => {
+          const copy = m.slice()
+          const last = copy[copy.length - 1]
+          copy[copy.length - 1] = { ...last, content: last.content + delta }
+          return copy
+        })
+      })
     } catch (e) {
-      setMessages((m) => [...m, { role: 'assistant', content: `⚠️ ${e.message}` }])
+      setMessages((m) => {
+        const copy = m.slice()
+        copy[copy.length - 1] = { role: 'assistant', content: `⚠️ ${e.message}` }
+        return copy
+      })
     } finally {
       setSending(false)
     }
@@ -97,10 +133,9 @@ export default function ChatPanel() {
       </div>
     ) : (
       <div className="flex flex-col gap-3">
-        {messages.map((m, i) => (
-          <Bubble key={i} role={m.role} content={m.content} />
-        ))}
-        {sending && (
+        {/* The not-yet-filled placeholder is skipped so no empty bubble flashes. */}
+        {messages.map((m, i) => (m.content ? <Bubble key={i} role={m.role} content={m.content} /> : null))}
+        {sending && !messages[messages.length - 1]?.content && (
           <div className="flex justify-start">
             <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-[#27272A] bg-[#15151A] px-4 py-3">
               {[0, 1, 2].map((d) => (
